@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>climate · time · sound</title>
+<meta name="description" content="Hear climate data become music — a bilingual teaching tool for music, climate and time series. / Höre, wie aus Klimadaten Musik wird — ein Lehrtool für Musik, Klima und Zeitreihen.">
+<link rel="stylesheet" href="css/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' fill='%230c0c0e'/><path d='M2 11 L5 8 L8 10 L11 4 L14 6' stroke='%23e6392f' fill='none' stroke-width='1.6'/></svg>">
+</head>
+<body data-mode="learn">
+
+<header class="top">
+  <div class="brand">
+    <span class="brand-main" data-i18n="app_title">climate · time · sound</span>
+    <span class="brand-sub" data-i18n="app_sub"></span>
+  </div>
+  <nav class="modes">
+    <button class="mode-btn active" data-mode="learn" data-i18n="mode_learn"></button>
+    <button class="mode-btn" data-mode="studio" data-i18n="mode_studio"></button>
+    <button class="mode-btn" data-mode="paleo" data-i18n="mode_paleo"></button>
+  </nav>
+  <div class="langs">
+    <button class="lang-btn" data-lang="de">DE</button>
+    <button class="lang-btn" data-lang="en">EN</button>
+  </div>
+</header>
+
+<main>
+  <!-- stage: chart + transport, always visible -->
+  <section class="stage">
+    <canvas id="viz"></canvas>
+    <div class="transport">
+      <button id="btn-play" class="btn primary">▶</button>
+      <div class="bar"><div id="bar-fill"></div></div>
+      <span id="time-disp" class="mono">0:00 / 0:00</span>
+      <button id="btn-wav" class="btn"></button>
+      <button id="btn-share" class="btn"></button>
+      <span id="share-msg" class="share-msg"></span>
+    </div>
+    <div class="legend">
+      <span class="legend-kicker" data-i18n="legend_title"></span>
+      <span id="legend-live" class="mono"></span>
+      <span id="legend-rule" class="mono rule"></span>
+    </div>
+  </section>
+
+  <!-- ============================== learn ============================== -->
+  <section class="panel panel-learn">
+    <div class="signalweg">
+      <span class="sw" data-i18n="signal_data"></span><span class="sw-a">→</span>
+      <span class="sw" data-i18n="signal_map"></span><span class="sw-a">→</span>
+      <span class="sw" data-i18n="signal_sound"></span>
+    </div>
+
+    <div class="learn-grid">
+      <div class="card">
+        <h3 data-i18n="sec_data"></h3>
+        <p class="hint" data-i18n="dataset_help"></p>
+        <label data-i18n="dataset"></label>
+        <select id="sel-city"></select>
+        <label><span data-i18n="years"></span> <span id="lbl-years" class="mono">1970 – 2020</span></label>
+        <div class="range2">
+          <input type="range" id="rng-from" min="1850" max="2015" value="1970" step="1">
+          <input type="range" id="rng-to" min="1880" max="2020" value="2020" step="1">
+        </div>
+        <p class="hint" data-i18n="years_help"></p>
+      </div>
+
+      <div class="card">
+        <h3 data-i18n="sec_map"></h3>
+        <label data-i18n="melody_source"></label>
+        <select id="sel-source">
+          <option value="anomaly" data-i18n="src_anomaly"></option>
+          <option value="trend" data-i18n="src_trend"></option>
+          <option value="blend" data-i18n="src_blend"></option>
+        </select>
+        <p class="hint" data-i18n="src_help"></p>
+        <div class="toggles">
+          <span class="toggles-head" data-i18n="tracks_title"></span>
+          <label class="tgl"><input type="checkbox" id="tgl-melody" checked><span data-i18n="trk_melody"></span></label>
+          <label class="tgl"><input type="checkbox" id="tgl-bass" checked><span data-i18n="trk_bass"></span></label>
+          <label class="tgl"><input type="checkbox" id="tgl-pad" checked><span data-i18n="trk_pad"></span></label>
+          <label class="tgl"><input type="checkbox" id="tgl-extremes" checked><span data-i18n="trk_extremes"></span></label>
+          <label class="tgl"><input type="checkbox" id="tgl-perc" checked><span data-i18n="trk_beat"></span></label>
+          <p class="hint" data-i18n="tracks_help"></p>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 data-i18n="sec_sound"></h3>
+        <label data-i18n="sound_world"></label>
+        <select id="sel-world">
+          <option value="quiet" data-i18n="sw_quiet"></option>
+          <option value="warm" data-i18n="sw_warm"></option>
+          <option value="electronic" data-i18n="sw_electronic"></option>
+          <option value="wide" data-i18n="sw_wide"></option>
+        </select>
+        <p class="hint" data-i18n="sw_help"></p>
+        <label data-i18n="tempo"></label>
+        <select id="sel-tempo">
+          <option value="slow" data-i18n="tempo_slow"></option>
+          <option value="mid" data-i18n="tempo_mid" selected></option>
+          <option value="fast" data-i18n="tempo_fast"></option>
+        </select>
+        <p class="hint" data-i18n="tempo_help"></p>
+      </div>
+    </div>
+
+    <h3 class="sec-h" data-i18n="sec_experiments"></h3>
+    <p class="hint" data-i18n="exp_intro"></p>
+    <div id="experiments" class="exp-grid"></div>
+
+    <div class="didactic">
+      <h3 data-i18n="did_learn_title"></h3>
+      <p data-i18n="did_learn_body"></p>
+    </div>
+  </section>
+
+  <!-- ============================== studio ============================= -->
+  <section class="panel panel-studio">
+    <p class="hint wide" data-i18n="studio_intro"></p>
+    <div id="style-grid" class="style-grid"></div>
+    <div class="didactic">
+      <h3 data-i18n="did_studio_title"></h3>
+      <p data-i18n="did_studio_body"></p>
+    </div>
+  </section>
+
+  <!-- ============================== paleo ============================== -->
+  <section class="panel panel-paleo">
+    <p class="hint wide" data-i18n="paleo_intro"></p>
+    <h3 class="sec-h" data-i18n="paleo_constellations"></h3>
+    <div id="constellations" class="exp-grid"></div>
+
+    <div class="paleo-controls">
+      <div>
+        <label data-i18n="paleo_span"></label>
+        <select id="sel-span">
+          <option value="0-800">0 – 800 kyr</option>
+          <option value="0-500">0 – 500 kyr</option>
+          <option value="0-2000">0 – 2000 kyr</option>
+          <option value="10-60">10 – 60 kyr</option>
+          <option value="127-387">127 – 387 kyr</option>
+          <option value="12-205">12 – 205 kyr</option>
+        </select>
+        <span class="hint" data-i18n="paleo_kyr"></span>
+      </div>
+      <div>
+        <label data-i18n="tempo"></label>
+        <select id="sel-ptempo">
+          <option value="slow" data-i18n="tempo_slow"></option>
+          <option value="mid" data-i18n="tempo_mid" selected></option>
+          <option value="fast" data-i18n="tempo_fast"></option>
+        </select>
+      </div>
+    </div>
+
+    <h3 class="sec-h" data-i18n="paleo_tracks"></h3>
+    <div id="paleo-tracks"></div>
+
+    <div class="didactic">
+      <h3 data-i18n="paleo_info_title"></h3>
+      <div id="paleo-info"></div>
+    </div>
+    <div class="didactic">
+      <h3 data-i18n="did_paleo_title"></h3>
+      <p data-i18n="did_paleo_body"></p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <p data-i18n="footer_sources"></p>
+</footer>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
