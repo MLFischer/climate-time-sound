@@ -32,7 +32,7 @@
     <canvas id="viz"></canvas>
     <div class="transport">
       <button id="btn-play" class="btn primary">▶</button>
-      <div class="bar"><div id="bar-fill"></div></div>
+      <input type="range" id="seek" min="0" max="1000" value="0" step="1" data-i18n-title="seek_title" aria-label="seek">
       <span id="time-disp" class="mono">0:00 / 0:00</span>
       <button id="btn-wav" class="btn"></button>
       <button id="btn-share" class="btn"></button>
@@ -124,6 +124,15 @@
   <section class="panel panel-studio">
     <p class="hint wide" data-i18n="studio_intro"></p>
     <div class="loop-box">
+      <div class="len-row">
+        <label for="sel-len" data-i18n="studio_len"></label>
+        <select id="sel-len">
+          <option value="normal" data-i18n="len_normal" selected></option>
+          <option value="long" data-i18n="len_long"></option>
+          <option value="epic" data-i18n="len_epic"></option>
+        </select>
+        <span class="hint" data-i18n="len_hint"></span>
+      </div>
       <label class="tgl"><input type="checkbox" id="tgl-loop"><span data-i18n="loop_label"></span></label>
       <p class="hint" data-i18n="loop_hint"></p>
       <p id="loop-status" class="loop-status mono"></p>

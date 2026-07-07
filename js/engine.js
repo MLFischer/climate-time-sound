@@ -433,12 +433,25 @@ export function scheduleEvent(session, ev, t0) {
 
 // Live playback with chunked lookahead. Returns a handle with stop() and
 // position() (seconds since score start, can be negative before start).
-// `startAt` (absolute AudioContext time) allows gapless chaining of scores.
-export function play(score, { onEnd, startAt } = {}) {
+// `startAt` (absolute AudioContext time) allows gapless chaining of scores;
+// `offset` starts playback mid-score (seek): long sustained events that
+// straddle the seek point are revived with their remaining duration.
+export function play(score, { onEnd, startAt, offset = 0 } = {}) {
   const ac = audioContext();
   const session = buildSession(ac, score.mix);
   const t0 = startAt && startAt > ac.currentTime + 0.05 ? startAt : ac.currentTime + 0.12;
-  const events = score.events.slice().sort((a, b) => a.t - b.t);
+  let events = score.events.slice().sort((a, b) => a.t - b.t);
+  if (offset > 0) {
+    const shifted = [];
+    for (const e of events) {
+      if (e.t >= offset) shifted.push({ ...e, t: e.t - offset });
+      else if ((e.dur || 0) > 2 && e.t + e.dur > offset + 0.5) {
+        shifted.push({ ...e, t: 0.03, dur: e.dur - (offset - e.t) });
+      }
+    }
+    events = shifted;
+  }
+  const remaining = score.duration - offset;
   let i = 0, stopped = false;
 
   const timer = setInterval(() => {
@@ -448,7 +461,7 @@ export function play(score, { onEnd, startAt } = {}) {
       scheduleEvent(session, events[i], t0);
       i++;
     }
-    if (ac.currentTime - t0 > score.duration + 0.5) handle.stop(true);
+    if (ac.currentTime - t0 > remaining + 0.5) handle.stop(true);
   }, 200);
   // schedule the first chunk immediately
   while (i < events.length && events[i].t < 1.8) { scheduleEvent(session, events[i], t0); i++; }
@@ -456,8 +469,9 @@ export function play(score, { onEnd, startAt } = {}) {
   const handle = {
     session,
     t0,
+    offset,
     duration: score.duration,
-    position: () => ac.currentTime - t0,
+    position: () => ac.currentTime - t0 + offset,
     setTrack(id, on) {
       const g = session.tracks[id];
       if (g) g.gain.setTargetAtTime(on ? 1 : 0, ac.currentTime, 0.02);

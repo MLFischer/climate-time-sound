@@ -146,6 +146,17 @@ const STR = {
   exp6_a: { de: 'A · Singapur', en: 'A · Singapore' },
   exp6_b: { de: 'B · Reykjavík', en: 'B · Reykjavík' },
 
+  // ---- studio: transport & length ----
+  seek_title: { de: 'position — ziehen zum vorspulen', en: 'position — drag to seek' },
+  studio_len: { de: 'dauer', en: 'duration' },
+  len_normal: { de: 'normal · ~4 min', en: 'normal · ~4 min' },
+  len_long: { de: 'lang · ~8 min', en: 'long · ~8 min' },
+  len_epic: { de: 'episch · ~17 min', en: 'epic · ~17 min' },
+  len_hint: {
+    de: '170 jahre dürfen dauern — mit dem regler oben spulst du jederzeit vor und zurück.',
+    en: '170 years may take their time — the slider above lets you seek at any point.'
+  },
+
   // ---- studio: endless loop ----
   loop_label: {
     de: '∞ endlosschleife — die daten wandern von stadt zu stadt',

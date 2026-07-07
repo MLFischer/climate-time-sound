@@ -77,8 +77,21 @@ main { max-width: 1100px; margin: 0 auto; padding: 22px 26px 40px; }
 .btn.primary { background: var(--red); border-color: var(--red); color: #fff; min-width: 130px; }
 .btn.primary:hover { filter: brightness(1.12); }
 
-.bar { flex: 1; min-width: 120px; height: 5px; background: var(--bg3); border-radius: 3px; overflow: hidden; }
-#bar-fill { height: 100%; width: 0; background: var(--red); transition: width 0.1s linear; }
+#seek {
+  -webkit-appearance: none; appearance: none;
+  flex: 1; min-width: 120px; height: 5px; border-radius: 3px;
+  background: var(--bg3); cursor: pointer; outline: none;
+}
+#seek::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--tx); border: 2px solid var(--bg); cursor: ew-resize;
+}
+#seek::-moz-range-thumb {
+  width: 12px; height: 12px; border-radius: 50%;
+  background: var(--tx); border: 2px solid var(--bg); cursor: ew-resize;
+}
+#seek::-moz-range-track { background: transparent; }
 #time-disp { color: var(--tx3); min-width: 88px; }
 .share-msg { color: var(--tx3); font-size: 12.5px; }
 
@@ -184,6 +197,10 @@ button.exp-card:hover, .exp-card.active { border-color: var(--tx3); }
   padding: 12px 16px; margin-bottom: 16px;
 }
 .loop-box .hint { margin: 2px 0 4px 24px; }
+.len-row { display: flex; align-items: center; gap: 12px; margin: 2px 0 10px; flex-wrap: wrap; }
+.len-row label { font-size: 13px; color: var(--tx2); }
+.len-row select { width: auto; }
+.len-row .hint { margin: 0; }
 .loop-status { color: var(--red); min-height: 16px; margin-left: 24px; }
 
 .style-grid {

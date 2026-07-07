@@ -14,6 +14,7 @@ const state = {
   source: 'anomaly', world: 'warm', tempo: 'mid',
   toggles: { melody: true, bass: true, pad: true, extremes: true, perc: true },
   styleId: 'downtempo',
+  studioLen: 'normal', seeking: false,
   paleo: {
     span: [0, 800], tempo: 'mid', constellation: 'iceages',
     root: 'A', scaleId: 'minor', today: false,
@@ -33,6 +34,8 @@ const WORLD_STYLE = { quiet: 'neoclassic', warm: 'downtempo', electronic: 'drivi
 // learn-mode tempo: months per second matter more than bpm — long windows
 // need fast month rates; the score builder thins the beat automatically.
 const TEMPO_MULT = { slow: 1, mid: 0.5, fast: 0.25 };
+// studio length: stretch the full-record piece (seek slider makes long fine)
+const LEN_MULT = { normal: 1, long: 2, epic: 4 };
 
 const PALEO_IDS = ['lr04', 'epica_co2', 'epica_temp', 'vostok_co2', 'vostok_temp', 'chew_k',
   'bosumtwi', 'geob1016_sst', 'enso_pc1', 'ngrip', 'sanbao', 'geob1028_nam', 'kl15_cati',
@@ -75,6 +78,7 @@ function stopPlayback() {
   if (state.handle) { state.handle.stop(); state.handle = null; }
   state.building = false;
   $('btn-play').textContent = '▶ ' + t('play');
+  paintSeek(0);
   updateLoopStatus();
 }
 
@@ -96,9 +100,11 @@ async function buildScore() {
   const raw = await loadDataset(state.dataset);
   state.material = buildMaterial(raw, state.yearFrom, state.yearTo);
   const styleId = state.mode === 'studio' ? state.styleId : WORLD_STYLE[state.world];
-  // studio always plays the full record; fullMult compresses ~170 years
-  // to a ~4-minute piece (one month = one 16th note)
-  const tempoMult = state.mode === 'studio' ? (STYLES[styleId].fullMult ?? 1) : TEMPO_MULT[state.tempo];
+  // studio always plays the full record; fullMult compresses ~170 years to a
+  // ~4-minute piece (one month = one 16th note); the length choice stretches it
+  const tempoMult = state.mode === 'studio'
+    ? (STYLES[styleId].fullMult ?? 1) * (LEN_MULT[state.studioLen] ?? 1)
+    : TEMPO_MULT[state.tempo];
   state.score = buildClimateScore(state.material, styleId, {
     source: state.mode === 'studio' ? 'anomaly' : state.source,
     tempoMult, seed: 20260706
@@ -107,7 +113,7 @@ async function buildScore() {
 
 const isLive = () => state.mode !== 'paleo' && String(state.dataset).startsWith('live|');
 
-async function startPlayback() {
+async function startPlayback(offset = 0) {
   stopPlayback();
   $('legend-live').textContent = t(isLive() ? 'live_loading' : 'loading');
   try { await buildScore(); } catch (e) {
@@ -117,12 +123,37 @@ async function startPlayback() {
   }
   redraw(-1);
   updateRuleLine();
-  const handle = play(state.score, { onEnd: () => { if (state.handle === handle && !state.next) { state.handle = null; $('btn-play').textContent = '▶ ' + t('play'); redraw(-1); updateLoopStatus(); } } });
+  const handle = play(state.score, { offset, onEnd: () => { if (state.handle === handle && !state.next) { state.handle = null; $('btn-play').textContent = '▶ ' + t('play'); redraw(-1); updateLoopStatus(); } } });
   state.handle = handle;
   applyToggles();
   $('btn-play').textContent = '■ ' + t('stop');
   updateLoopStatus();
   requestAnimationFrame(tick);
+}
+
+// jump inside the running (or stopped) piece — the audio graph is rebuilt
+// from the target position, long sustains are revived by the engine
+async function seekTo(frac) {
+  if (!state.score) { await prepareView(); }
+  if (!state.score) return;
+  const target = Math.max(0, Math.min(0.995, frac)) * state.score.duration;
+  if (!state.handle) { await startPlayback(target); return; }
+  if (state.next) { state.next.handle.stop(); state.next = null; }
+  const old = state.handle;
+  state.handle = null;
+  old.stop();
+  const handle = play(state.score, { offset: target, onEnd: () => { if (state.handle === handle && !state.next) { state.handle = null; $('btn-play').textContent = '▶ ' + t('play'); redraw(-1); updateLoopStatus(); } } });
+  state.handle = handle;
+  applyToggles();
+  $('btn-play').textContent = '■ ' + t('stop');
+  requestAnimationFrame(tick);
+}
+
+function paintSeek(frac) {
+  const sk = $('seek');
+  sk.value = String(Math.round(frac * 1000));
+  const pc = (frac * 100).toFixed(2) + '%';
+  sk.style.background = `linear-gradient(to right, var(--red) ${pc}, var(--bg3) ${pc})`;
 }
 
 // ------------------------------------------------------- endless loop ----
@@ -156,9 +187,9 @@ async function loopAdvance(startAtOverride) {
     const cityId = nextCityId(state.dataset);
     const raw = await loadCity(cityId);
     const material = buildMaterial(raw, st.years[0], st.years[1]);
-    const score = buildClimateScore(material, state.styleId, { source: 'anomaly', tempoMult: st.fullMult ?? 1, seed: 20260706 });
+    const score = buildClimateScore(material, state.styleId, { source: 'anomaly', tempoMult: (st.fullMult ?? 1) * (LEN_MULT[state.studioLen] ?? 1), seed: 20260706 });
     if (state.handle !== cur) return;              // stopped/changed meanwhile
-    const startAt = startAtOverride ?? (cur.t0 + state.score.meta.bodyEnd);
+    const startAt = startAtOverride ?? (cur.t0 + Math.max(0.1, state.score.meta.bodyEnd - (cur.offset || 0)));
     const handle = play(score, {
       startAt,
       onEnd: () => { if (state.handle === handle && !state.next) { state.handle = null; $('btn-play').textContent = '▶ ' + t('play'); redraw(-1); updateLoopStatus(); } }
@@ -217,8 +248,10 @@ function tick() {
 
   const pos = h.position();
   const frac = Math.max(0, Math.min(1, pos / h.duration));
-  $('bar-fill').style.width = (frac * 100) + '%';
-  $('time-disp').textContent = `${fmt(Math.max(0, pos))} / ${fmt(h.duration)}`;
+  if (!state.seeking) {
+    paintSeek(frac);
+    $('time-disp').textContent = `${fmt(Math.max(0, pos))} / ${fmt(h.duration)}`;
+  }
   redraw(playFracFromPos(pos));
   updateLegend(pos);
   requestAnimationFrame(tick);
@@ -311,7 +344,11 @@ async function exportWav() {
 function encodeShare() {
   const p = new URLSearchParams();
   p.set('m', state.mode); p.set('lang', getLang());
-  if (state.mode === 'studio') { p.set('s', state.styleId); if (state.loop) p.set('loop', '1'); }
+  if (state.mode === 'studio') {
+    p.set('s', state.styleId);
+    if (state.loop) p.set('loop', '1');
+    if (state.studioLen !== 'normal') p.set('len', state.studioLen);
+  }
   else if (state.mode === 'paleo') {
     p.set('span', state.paleo.span.join('-'));
     p.set('pt', state.paleo.tempo);
@@ -336,6 +373,7 @@ function decodeShare() {
     if (m) state.mode = ['learn', 'studio', 'paleo'].includes(m) ? m : 'learn';
     if (p.get('s') && STYLES[p.get('s')]) state.styleId = p.get('s');
     state.loop = p.get('loop') === '1';
+    if (p.get('len') && LEN_MULT[p.get('len')]) state.studioLen = p.get('len');
     if (p.get('d')) state.dataset = p.get('d');
     if (p.get('y')) { const [a, b] = p.get('y').split('-').map(Number); if (a && b) { state.yearFrom = a; state.yearTo = b; } }
     if (p.get('src')) state.source = p.get('src');
@@ -697,6 +735,24 @@ function wire() {
   $('btn-play').addEventListener('click', () => {
     if (state.handle) stopPlayback(); else startPlayback();
   });
+
+  const seek = $('seek');
+  seek.addEventListener('pointerdown', () => { state.seeking = true; });
+  seek.addEventListener('input', () => {
+    const frac = Number(seek.value) / 1000;
+    paintSeek(frac);
+    if (state.score) $('time-disp').textContent = `${fmt(frac * state.score.duration)} / ${fmt(state.score.duration)}`;
+  });
+  seek.addEventListener('change', () => {
+    state.seeking = false;
+    seekTo(Number(seek.value) / 1000);
+  });
+  seek.addEventListener('pointerup', () => { state.seeking = false; });
+
+  $('sel-len').addEventListener('change', e => {
+    state.studioLen = e.target.value;
+    if (state.mode === 'studio' && state.handle) startPlayback();
+  });
   $('btn-wav').addEventListener('click', exportWav);
   $('btn-share').addEventListener('click', copyShare);
 
@@ -754,6 +810,7 @@ function refreshTexts() {
   $('btn-wav').textContent = '⬇ ' + t('download_wav');
   $('btn-share').textContent = '🔗 ' + t('share_link');
   $('tgl-loop').checked = state.loop;
+  $('sel-len').value = state.studioLen;
   updateLoopStatus();
   updateRuleLine();
 }
