@@ -208,10 +208,14 @@ button.exp-card:hover, .exp-card.active { border-color: var(--tx3); }
 .paleo-controls .hint { display: block; }
 
 .paleo-row {
-  display: grid; grid-template-columns: 70px 2.2fr 1fr 1fr; gap: 10px;
+  display: grid; grid-template-columns: 64px 2.2fr 0.9fr 0.9fr 1.1fr 1.3fr; gap: 10px;
   align-items: center; margin-bottom: 8px;
 }
 .paleo-row-n { font-family: var(--mono); font-size: 12px; color: var(--tx3); }
+.paleo-slider { display: flex; flex-direction: column; gap: 2px; }
+.paleo-slider span { font-family: var(--mono); font-size: 10.5px; color: var(--tx3); white-space: nowrap; }
+.paleo-slider input[type="range"] { width: 100%; accent-color: var(--red); height: 18px; }
+#paleo-periods { margin: 4px 0 10px; }
 
 /* ----------------------------------------------------------- didactic --- */
 .didactic {

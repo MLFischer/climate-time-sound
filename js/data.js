@@ -16,6 +16,53 @@ export const loadCityIndex = () => fetchJson('data/cities.json');
 export const loadCity = id => fetchJson(`data/cities/${id}.json`);
 export const loadGlobal = () => fetchJson('data/global.json');
 export const loadPaleo = () => fetchJson('data/paleo.json');
+// full Berkeley Earth catalogue (~3500 cities), scraped index: [{l, c, loc}]
+export const loadCityIndexAll = () => fetchJson('data/cities-all.json');
+
+// ---- live loading of any Berkeley Earth city (CORS-enabled mirror) --------
+const BERKELEY_URL = 'https://data.berkeleyearth.org/auto/Local/TAVG/Text/%s-TAVG-Trend.txt';
+
+export async function loadCityLive(location, label, country) {
+  const key = 'live:' + location;
+  if (cache.has(key)) return cache.get(key);
+  const res = await fetch(BERKELEY_URL.replace('%s', location));
+  if (!res.ok) throw new Error('Berkeley Earth fetch failed: ' + location);
+  const text = await res.text();
+  const lines = text.split('\n');
+
+  // monthly climatology ("monthly absolute temperature" block)
+  let normals = null;
+  const ni = lines.findIndex(l => /monthly absolute temperature/i.test(l));
+  if (ni >= 0) {
+    for (let k = ni + 1; k < Math.min(lines.length, ni + 9); k++) {
+      if (/^%%\s*[-0-9]/.test(lines[k])) {
+        const nums = lines[k].replace(/^%%/, '').trim().split(/\s+/).map(Number).filter(Number.isFinite);
+        if (nums.length >= 12) normals = nums.slice(0, 12);
+        break;
+      }
+    }
+  }
+
+  const year = [], month = [], anomaly = [], unc = [], ten = [];
+  for (const l of lines) {
+    if (!/^\s*\d{4}\s+\d{1,2}\s/.test(l)) continue;
+    const p = l.trim().split(/\s+/).map(Number);
+    if (!Number.isFinite(p[2])) continue;              // anomaly missing
+    year.push(p[0]); month.push(p[1]); anomaly.push(p[2]);
+    unc.push(Number.isFinite(p[3]) ? p[3] : null);
+    ten.push(Number.isFinite(p[8]) ? p[8] : null);     // 10-year moving average
+  }
+  if (!year.length) throw new Error('no data rows for ' + location);
+
+  const raw = {
+    id: key, label, country, location,
+    source: `Berkeley Earth, ${location} (TAVG, live)`,
+    normals, first_year: year[0], last_year: year[year.length - 1],
+    year, month, anomaly, unc, ten
+  };
+  cache.set(key, raw);
+  return raw;
+}
 
 const quantile = (arr, q) => {
   const s = arr.filter(Number.isFinite).slice().sort((a, b) => a - b);

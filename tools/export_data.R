@@ -53,6 +53,8 @@ paleo_defs <- list(
   list(id="sanbao",      file="sanbao.csv",       col="d18o", unit="‰"),
   list(id="geob1028_nam",file="geob1028_nam.csv", col="nam",  unit="NAM1"),
   list(id="kl15_cati",   file="kl15_cati.csv",    col="cati", unit="Ca/Ti"),
+  list(id="odp967_tial", file="odp967_tial.csv",  col="tial", unit="Ti/Al"),
+  list(id="ohrid_k",     file="ohrid_k.csv",      col="k",    unit="counts"),
   list(id="ecc",         file="orbital.csv",      col="ecc",  unit=""),
   list(id="obl",         file="orbital.csv",      col="obl",  unit="°"),
   list(id="prec",        file="orbital.csv",      col="prec", unit="")

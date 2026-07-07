@@ -31,6 +31,17 @@ const STR = {
   sec_experiments: { de: 'experimente — geführte hör-aufgaben', en: 'experiments — guided listening tasks' },
 
   dataset: { de: 'messreihe', en: 'record' },
+  city_search: { de: 'weltweite suche — alle Berkeley-Earth-orte', en: 'worldwide search — all Berkeley Earth places' },
+  city_search_ph: { de: 'z. b. leipzig, quito, ulan bator …', en: 'e.g. leipzig, quito, ulaanbaatar …' },
+  city_search_help: {
+    de: 'Über 3500 Städte weltweit — auch mittelgroße wie Leipzig oder Kassel. Kuratierte Städte liegen lokal; alle anderen werden live von Berkeley Earth geladen (Internet nötig).',
+    en: 'More than 3,500 cities worldwide — including mid-sized ones like Leipzig or Kassel. Curated cities are bundled; all others load live from Berkeley Earth (internet required).'
+  },
+  live_loading: { de: 'lade live von Berkeley Earth …', en: 'loading live from Berkeley Earth …' },
+  live_error: {
+    de: 'live-daten nicht erreichbar — prüfe die internetverbindung',
+    en: 'live data unreachable — check your internet connection'
+  },
   dataset_global: { de: 'Erde · global (HadCRUT)', en: 'Earth · global (HadCRUT)' },
   dataset_help: {
     de: 'Eine Messreihe = ein Ort. Pro Monat ein Wert. Die Kurve zeigt die Anomalie: die Abweichung vom langjährigen Mittel — nicht das Wetter eines Tages.',
@@ -181,6 +192,59 @@ const STR = {
   oct_mid: { de: 'mittel', en: 'mid' },
   oct_high: { de: 'hoch', en: 'high' },
   paleo_info_title: { de: 'was höre ich da?', en: 'what am I hearing?' },
+  paleo_gain: { de: 'pegel', en: 'level' },
+  paleo_offset: { de: 'versatz', en: 'shift' },
+  paleo_offset_help: {
+    de: 'Zeit-Versatz in Jahrtausenden: Verschiebe eine Spur gegen die anderen. Klingt die Kopplung (z. B. CO₂ ↔ Temperatur) noch stimmig? So testet man Führen und Folgen (lead–lag).',
+    en: 'Time shift in millennia: slide one track against the others. Does the coupling (e.g. CO₂ ↔ temperature) still sound right? This is how you probe lead–lag relationships.'
+  },
+  paleo_root: { de: 'grundton', en: 'root' },
+  paleo_scale: { de: 'skala', en: 'scale' },
+  sc_minor: { de: 'moll', en: 'minor' },
+  sc_dorian: { de: 'dorisch', en: 'dorian' },
+  sc_pentMinor: { de: 'pentatonik', en: 'pentatonic' },
+  sc_major: { de: 'dur', en: 'major' },
+  sc_phrygian: { de: 'phrygisch', en: 'phrygian' },
+  paleo_periods: {
+    de: 'hörbare zyklen bei diesem tempo: ~100 kyr (exzentrizität) ≈ {p100} s · ~41 kyr (obliquität) ≈ {p41} s · ~21 kyr (präzession) ≈ {p21} s',
+    en: 'audible cycles at this tempo: ~100 kyr (eccentricity) ≈ {p100} s · ~41 kyr (obliquity) ≈ {p41} s · ~21 kyr (precession) ≈ {p21} s'
+  },
+  paleo_today: { de: 'heute-marker: CO₂ 424 ppm am ende', en: 'today marker: CO₂ 424 ppm at the end' },
+  paleo_today_help: {
+    de: 'In 800.000 Jahren Eiszeit-Welt lag CO₂ zwischen ~180 und ~280 ppm. Der Schlusston am Ende des Stücks liegt so weit über allem Gehörten, wie das heutige CO₂ (424 ppm, 2024) über dieser Spanne liegt — in Jahrzehnten statt Jahrtausenden erreicht.',
+    en: 'Across 800,000 years of the ice-age world, CO₂ stayed between ~180 and ~280 ppm. The closing tone sits as far above everything you just heard as today\'s CO₂ (424 ppm, 2024) sits above that range — reached in decades, not millennia.'
+  },
+  paleo_experiments: { de: 'hör-aufgaben — tiefenzeit', en: 'listening tasks — deep time' },
+  pexp1_t: { de: 'den 100.000-jahre-takt zählen', en: 'count the 100,000-year beat' },
+  pexp1_s: {
+    de: 'Nur das Eisvolumen (LR04), 800.000 Jahre. Zähle die großen Wellen: etwa acht Eiszeit-Zyklen — der Takt der Exzentrizität.',
+    en: 'Ice volume only (LR04), 800,000 years. Count the big waves: roughly eight glacial cycles — the beat of eccentricity.'
+  },
+  pexp2_t: { de: 'CO₂ & temperatur im gleichschritt', en: 'CO₂ & temperature in lockstep' },
+  pexp2_s: {
+    de: 'Bass = CO₂, Melodie = Antarktis-Temperatur, kein Versatz. Höre, wie eng beide gekoppelt schwingen — das ist die zentrale Kopplung des Klimasystems.',
+    en: 'Bass = CO₂, melody = Antarctic temperature, no shift. Hear how tightly the two swing together — the central coupling of the climate system.'
+  },
+  pexp3_t: { de: 'was passiert bei +20.000 jahren versatz?', en: 'what happens at a +20,000-year shift?' },
+  pexp3_s: {
+    de: 'Gleiche Spuren, aber das CO₂ läuft 20 kyr versetzt: Das Zusammenspiel zerfällt hörbar. So prüft man, wie eng zwei Größen wirklich gekoppelt sind.',
+    en: 'Same tracks, but CO₂ shifted by 20 kyr: the interplay audibly falls apart. This is how you test how tightly two quantities are really coupled.'
+  },
+  pexp4_t: { de: 'abrupt gegen langsam', en: 'abrupt versus slow' },
+  pexp4_s: {
+    de: 'Grönland (NGRIP), 10–60 kyr: Dansgaard-Oeschger-Sprünge innerhalb von Jahrzehnten. Vergleiche mit dem langsamen Eis-Takt aus Aufgabe 1 — Kippen klingt anders als Schwingen.',
+    en: 'Greenland (NGRIP), 10–60 kyr: Dansgaard–Oeschger jumps within decades. Compare with the slow ice beat from task 1 — tipping sounds different from cycling.'
+  },
+  pc_sahara_t: { de: 'sahara-staub & mittelmeer', en: 'saharan dust & mediterranean' },
+  pc_sahara_s: {
+    de: 'Ti/Al aus ODP 967 (Ostmittelmeer): Staub aus der Sahara im Takt der Präzession — grüne Sahara, trockene Sahara, alle ~21.000 Jahre. Präzession als Fläche darunter.',
+    en: 'Ti/Al from ODP 967 (E. Mediterranean): Saharan dust pulsing with precession — green Sahara, dry Sahara, every ~21,000 years. Precession as the pad beneath.'
+  },
+  pc_ohrid_t: { de: 'ohrid · europas ältester see', en: 'ohrid · europe\'s oldest lake' },
+  pc_ohrid_s: {
+    de: '1,3 Millionen Jahre Lake Ohrid (ICDP): Kalium zeigt Erosion und Gletschertakt auf dem Balkan — quer durch die Mittelpleistozäne Wende, unterlegt mit dem globalen Eis.',
+    en: '1.3 million years of Lake Ohrid (ICDP): potassium tracks erosion and glacial pacing in the Balkans — across the Mid-Pleistocene Transition, with global ice beneath.'
+  },
 
   pc_iceages_t: { de: 'eiszeiten & CO₂', en: 'ice ages & CO₂' },
   pc_iceages_s: {
@@ -328,6 +392,16 @@ const STR = {
     de: 'Ca/Ti aus dem Chew-Bahir-Langkern KL15. Karbonat/Detritus-Verhältnis als Feucht-Trocken-Proxy in Ostafrika, ~0–550 kyr.',
     en: 'Ca/Ti from the Chew Bahir long core KL15. Carbonate/detrital ratio as a wet–dry proxy in East Africa, ~0–550 kyr.'
   },
+  pd_odp967_tial: { de: 'ODP 967 · sahara-staub (Ti/Al)', en: 'ODP 967 · Saharan dust (Ti/Al)' },
+  pd_odp967_tial_d: {
+    de: 'Ti/Al aus dem Ostmittelmeer (ODP 967, Grant 2022): Staub-Eintrag aus der Sahara. Hoch = trocken/staubig, tief = „grüne Sahara". Stark präzessionsgetaktet, 0–5000 kyr.',
+    en: 'Ti/Al from the Eastern Mediterranean (ODP 967, Grant 2022): Saharan dust input. High = dry/dusty, low = "green Sahara". Strongly precession-paced, 0–5000 kyr.'
+  },
+  pd_ohrid_k: { de: 'Lake Ohrid · kalium (ICDP)', en: 'Lake Ohrid · potassium (ICDP)' },
+  pd_ohrid_k_d: {
+    de: 'Kalium aus dem ICDP-Kern des Ohridsees (Nordmazedonien/Albanien, Wagner 2019) — Europas ältester See. Proxy für Erosion/Glazialdynamik, ~0–1360 kyr.',
+    en: 'Potassium from the ICDP core of Lake Ohrid (N. Macedonia/Albania, Wagner 2019) — Europe\'s oldest lake. Proxy for erosion/glacial dynamics, ~0–1360 kyr.'
+  },
   pd_ecc: { de: 'orbital · exzentrizität (~100/405 kyr)', en: 'orbital · eccentricity (~100/405 kyr)' },
   pd_ecc_d: {
     de: 'Exzentrizität der Erdbahn (Laskar 2004) — wie elliptisch sie ist, ~100- & 405-kyr-Zyklen. Moduliert die Stärke der Präzession.',
@@ -362,8 +436,9 @@ export function t(key, vars) {
   return s;
 }
 
-// Apply translations to all elements carrying data-i18n / data-i18n-title.
+// Apply translations to all elements carrying data-i18n attributes.
 export function applyI18n(root = document) {
   root.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
   root.querySelectorAll('[data-i18n-title]').forEach(el => { el.title = t(el.dataset.i18nTitle); });
+  root.querySelectorAll('[data-i18n-ph]').forEach(el => { el.placeholder = t(el.dataset.i18nPh); });
 }

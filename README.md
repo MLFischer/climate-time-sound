@@ -20,9 +20,9 @@ beliebig skaliert.
 
 | mode | EN | DE |
 |------|----|----|
-| **learn** | Guided signal path *data → mapping → sound*: choose a record (22 cities + the global HadCRUT series), decompose it into tracks (melody = monthly values, bass = trend, pad = seasons, accents = extremes), and run six one-click listening experiments. A live legend shows, for every month, which value produces which note. | Geführter Signalweg *daten → übersetzung → klang*: Messreihe wählen (22 Städte + globale HadCRUT-Reihe), in Spuren zerlegen (Melodie = Monatswerte, Bass = Trend, Fläche = Saison, Akzente = Extreme), sechs Ein-Klick-Hörexperimente. Die Live-Legende zeigt für jeden Monat, welcher Wert welchen Ton erzeugt. |
-| **studio** | Twelve finished style scores — dub techno (Berlin), acid (Chicago), trip-hop (London), neoclassical (Paris), deep ambient (Reykjavík) … Each card is a complete piece driven by the same mapping rules. | Zwölf fertige Stil-Partituren — Dub Techno (Berlin), Acid (Chicago), Trip-Hop (London), Neoklassik (Paris), Deep Ambient (Reykjavík) … Jede Karte ist ein komplettes Stück nach denselben Übersetzungsregeln. |
-| **paleo** | Deep time as a multitrack piece: LR04, EPICA CO₂/temperature, Vostok, NGRIP, Milankovitch cycles (Laskar 2004), African lake records … Six curated constellations, four freely assignable tracks. | Tiefenzeit als Mehrspur-Stück: LR04, EPICA-CO₂/Temperatur, Vostok, NGRIP, Milankovitch-Zyklen (Laskar 2004), afrikanische Seesedimente … Sechs kuratierte Konstellationen, vier frei belegbare Spuren. |
+| **learn** | Guided signal path *data → mapping → sound*: choose a record — 22 bundled cities, the global HadCRUT series, or **any of 3,500+ Berkeley Earth places via worldwide search** (loaded live, e.g. Leipzig) — decompose it into tracks (melody = monthly values, bass = trend, pad = seasons, accents = extremes), and run six one-click listening experiments. A live legend shows, for every month, which value produces which note. | Geführter Signalweg *daten → übersetzung → klang*: Messreihe wählen — 22 gebündelte Städte, die globale HadCRUT-Reihe oder **über 3500 Berkeley-Earth-Orte per Weltsuche** (live geladen, z. B. Leipzig) — in Spuren zerlegen (Melodie = Monatswerte, Bass = Trend, Fläche = Saison, Akzente = Extreme), sechs Ein-Klick-Hörexperimente. Die Live-Legende zeigt für jeden Monat, welcher Wert welchen Ton erzeugt. |
+| **studio** | Twelve finished style scores — dub techno (Berlin), acid (Chicago), trip-hop (London), neoclassical (Paris), deep ambient (Reykjavík) … Each card is a complete piece driven by the same mapping rules. **Endless loop mode** chains city after city gaplessly in the chosen style — continuous sound for installations. | Zwölf fertige Stil-Partituren — Dub Techno (Berlin), Acid (Chicago), Trip-Hop (London), Neoklassik (Paris), Deep Ambient (Reykjavík) … Jede Karte ist ein komplettes Stück nach denselben Übersetzungsregeln. Der **Endlosschleifen-Modus** hängt Stadt an Stadt nahtlos im gewählten Stil — Dauer-Sound für Installationen. |
+| **paleo** | Deep time as a multitrack piece: 18 real records — LR04, EPICA CO₂/temperature, Vostok, NGRIP, Saharan dust (ODP 967), Lake Ohrid, Milankovitch cycles (Laskar 2004), African lake records … Eight curated constellations, four freely assignable tracks with level and **time-shift (lead–lag)**, key/scale choice, audible cycle lengths, a **"today" CO₂ marker** and four deep-time listening tasks. | Tiefenzeit als Mehrspur-Stück: 18 echte Reihen — LR04, EPICA-CO₂/Temperatur, Vostok, NGRIP, Sahara-Staub (ODP 967), Ohridsee, Milankovitch-Zyklen (Laskar 2004), afrikanische Seesedimente … Acht kuratierte Konstellationen, vier frei belegbare Spuren mit Pegel und **Zeit-Versatz (Lead–Lag)**, Tonart/Skala, hörbare Zykluslängen, ein **„Heute"-CO₂-Marker** und vier Tiefenzeit-Höraufgaben. |
 
 Everything can be **exported as WAV** (rendered offline in the browser) and
 **shared as a link** (all settings live in the URL).
@@ -126,12 +126,15 @@ browser console: render any score with `OfflineAudioContext` via
 
 ## Data & credits / Daten & Quellen
 
-HadCRUT 4.6 (Met Office Hadley Centre / CRU) · Berkeley Earth city records ·
-NOAA Paleoclimate: LR04 (Lisiecki & Raymo 2005), EPICA CO₂ (Bereiter et al.
-2015), EPICA temperature (Jouzel et al. 2007), Vostok (Petit et al. 1999),
-NGRIP (GICC05), Sanbao/Hulu (Wang et al. 2008), orbital parameters (Laskar
-2004), Chew Bahir / HSPDP, Lake Bosumtwi, GeoB cores, ENSO PC1 (Kaboth-Bahr et
-al. 2021). The datasets remain the property of their providers.
+HadCRUT 4.6 (Met Office Hadley Centre / CRU) · Berkeley Earth city records
+(22 bundled; all others fetched live in the browser from
+`data.berkeleyearth.org`) · NOAA Paleoclimate: LR04 (Lisiecki & Raymo 2005),
+EPICA CO₂ (Bereiter et al. 2015), EPICA temperature (Jouzel et al. 2007),
+Vostok (Petit et al. 1999), NGRIP (GICC05), Sanbao/Hulu (Wang et al. 2008),
+orbital parameters (Laskar 2004), Chew Bahir / HSPDP, Lake Bosumtwi, GeoB
+cores, ENSO PC1 (Kaboth-Bahr et al. 2021), Saharan dust ODP 967 Ti/Al (Grant
+et al. 2022), Lake Ohrid ICDP potassium (Wagner et al. 2019). The datasets
+remain the property of their providers.
 
 Code and texts: MIT. Artist names in the studio are sonic references
 ("in the spirit of"), not endorsements.

@@ -1,7 +1,7 @@
 // app.js — UI wiring: modes, controls, playback sync, experiments, sharing.
 
 import { t, setLang, getLang, applyI18n } from './i18n.js';
-import { loadCityIndex, loadCity, loadGlobal, loadPaleo, buildMaterial } from './data.js';
+import { loadCityIndex, loadCity, loadGlobal, loadPaleo, buildMaterial, loadCityIndexAll, loadCityLive } from './data.js';
 import { play, renderWav } from './engine.js';
 import { STYLES, STYLE_ORDER, buildClimateScore, buildPaleoScore } from './score.js';
 import { drawClimate, drawPaleo } from './viz.js';
@@ -16,14 +16,15 @@ const state = {
   styleId: 'downtempo',
   paleo: {
     span: [0, 800], tempo: 'mid', constellation: 'iceages',
+    root: 'A', scaleId: 'minor', today: false,
     tracks: [
-      { dataset: 'lr04', voice: 'lead', octave: 5 },
-      { dataset: 'epica_co2', voice: 'bass', octave: 3 },
-      { dataset: 'epica_temp', voice: 'pad', octave: 4 },
-      { dataset: 'off', voice: 'pluck', octave: 5 }
+      { dataset: 'lr04', voice: 'lead', octave: 5, gain: 1, offset: 0 },
+      { dataset: 'epica_co2', voice: 'bass', octave: 3, gain: 1, offset: 0 },
+      { dataset: 'epica_temp', voice: 'pad', octave: 4, gain: 1, offset: 0 },
+      { dataset: 'off', voice: 'pluck', octave: 5, gain: 1, offset: 0 }
     ]
   },
-  material: null, score: null, handle: null, paleoData: null, cityIndex: [],
+  material: null, score: null, handle: null, paleoData: null, cityIndex: [], cityAll: null,
   // endless loop (studio): chain city after city in the same style, gapless
   loop: false, next: null, building: false
 };
@@ -35,16 +36,38 @@ const TEMPO_MULT = { slow: 1, mid: 0.5, fast: 0.25 };
 
 const PALEO_IDS = ['lr04', 'epica_co2', 'epica_temp', 'vostok_co2', 'vostok_temp', 'chew_k',
   'bosumtwi', 'geob1016_sst', 'enso_pc1', 'ngrip', 'sanbao', 'geob1028_nam', 'kl15_cati',
-  'ecc', 'obl', 'prec'];
+  'odp967_tial', 'ohrid_k', 'ecc', 'obl', 'prec'];
+
+// short symbols + units for the live legend
+const PALEO_SHORT = {
+  lr04: 'δ¹⁸O', epica_co2: 'CO₂', epica_temp: 'ΔT', vostok_co2: 'CO₂', vostok_temp: 'ΔT',
+  chew_k: 'K', bosumtwi: 'K', geob1016_sst: 'SST', enso_pc1: 'PC1', ngrip: 'δ¹⁸O',
+  sanbao: 'δ¹⁸O', geob1028_nam: 'NAM1', kl15_cati: 'Ca/Ti', odp967_tial: 'Ti/Al',
+  ohrid_k: 'K', ecc: 'ecc', obl: 'obl', prec: 'prec'
+};
+
+const PALEO_ROOTS = { C: 36, D: 38, E: 40, F: 41, G: 43, A: 45, B: 47 };
 
 const CONSTELLATIONS = {
   iceages: { span: [0, 800], tracks: [['lr04', 'lead', 5], ['epica_co2', 'bass', 3], ['epica_temp', 'pad', 4]] },
   milank: { span: [0, 800], tracks: [['ecc', 'pad', 3], ['obl', 'pad', 4], ['prec', 'pluck', 6], ['lr04', 'lead', 5]] },
   africa: { span: [0, 500], tracks: [['chew_k', 'pluck', 6], ['kl15_cati', 'pluck', 5], ['lr04', 'pad', 3]] },
+  sahara: { span: [0, 500], tracks: [['odp967_tial', 'lead', 5], ['prec', 'pad', 3], ['lr04', 'pad', 4]] },
+  ohrid: { span: [0, 1300], tracks: [['ohrid_k', 'lead', 5], ['lr04', 'pad', 3]] },
   do: { span: [10, 60], tracks: [['ngrip', 'lead', 5], ['ngrip', 'bass', 3]] },
   monsoon: { span: [127, 387], tracks: [['sanbao', 'pluck', 6], ['prec', 'pad', 3]] },
   enso: { span: [12, 205], tracks: [['enso_pc1', 'lead', 5], ['geob1016_sst', 'pad', 3]] }
 };
+
+// resolve a dataset id: 'global' | bundled city id | 'live|<loc>|<label>'
+function loadDataset(ds) {
+  if (ds === 'global') return loadGlobal();
+  if (ds.startsWith('live|')) {
+    const [, loc, label] = ds.split('|');
+    return loadCityLive(loc, label);
+  }
+  return loadCity(ds);
+}
 
 // ------------------------------------------------------------------ audio --
 function stopPlayback() {
@@ -63,12 +86,14 @@ async function buildScore() {
     }));
     const stepSec = { slow: 0.2, mid: 0.13, fast: 0.085 }[state.paleo.tempo];
     state.score = buildPaleoScore(tracks, {
-      from: state.paleo.span[0], to: state.paleo.span[1], stepSec
+      from: state.paleo.span[0], to: state.paleo.span[1], stepSec,
+      root: PALEO_ROOTS[state.paleo.root] ?? 45, scaleId: state.paleo.scaleId,
+      todayMarker: state.paleo.today
     });
     state.material = null;
     return;
   }
-  const raw = state.dataset === 'global' ? await loadGlobal() : await loadCity(state.dataset);
+  const raw = await loadDataset(state.dataset);
   state.material = buildMaterial(raw, state.yearFrom, state.yearTo);
   const styleId = state.mode === 'studio' ? state.styleId : WORLD_STYLE[state.world];
   const tempoMult = state.mode === 'studio' ? 1 : TEMPO_MULT[state.tempo];
@@ -78,11 +103,15 @@ async function buildScore() {
   });
 }
 
+const isLive = () => state.mode !== 'paleo' && String(state.dataset).startsWith('live|');
+
 async function startPlayback() {
   stopPlayback();
-  $('legend-live').textContent = t('loading');
+  $('legend-live').textContent = t(isLive() ? 'live_loading' : 'loading');
   try { await buildScore(); } catch (e) {
-    console.error(e); $('legend-live').textContent = t('data_error'); return;
+    console.error(e);
+    $('legend-live').textContent = t(isLive() ? 'live_error' : 'data_error');
+    return;
   }
   redraw(-1);
   updateRuleLine();
@@ -209,7 +238,13 @@ function updateLegend(pos) {
   if (state.mode === 'paleo') {
     const i = Math.floor((pos - m.lead) / m.stepSec);
     if (i >= 0 && i < m.ages.length) {
-      $('legend-live').textContent = `${Math.round(m.ages[i])} kyr BP`;
+      const parts = m.tracks.map(tr => {
+        const v = tr.raw?.[i];
+        if (!Number.isFinite(v)) return null;
+        const unit = state.paleoData?.[tr.dataset]?.unit || '';
+        return `${PALEO_SHORT[tr.dataset] ?? tr.dataset} ${v}${unit ? ' ' + unit : ''}`;
+      }).filter(Boolean);
+      $('legend-live').textContent = [`${Math.round(m.ages[i])} kyr BP`, ...parts].join(' · ');
     }
     return;
   }
@@ -276,7 +311,10 @@ function encodeShare() {
   else if (state.mode === 'paleo') {
     p.set('span', state.paleo.span.join('-'));
     p.set('pt', state.paleo.tempo);
-    p.set('trk', state.paleo.tracks.map(tr => `${tr.dataset}.${tr.voice}.${tr.octave}`).join(','));
+    p.set('pr', state.paleo.root);
+    p.set('psc', state.paleo.scaleId);
+    if (state.paleo.today) p.set('ptd', '1');
+    p.set('trk', state.paleo.tracks.map(tr => `${tr.dataset}.${tr.voice}.${tr.octave}.${tr.gain ?? 1}.${tr.offset ?? 0}`).join(','));
   } else {
     p.set('d', state.dataset); p.set('y', `${state.yearFrom}-${state.yearTo}`);
     p.set('src', state.source); p.set('w', state.world); p.set('tp', state.tempo);
@@ -305,12 +343,15 @@ function decodeShare() {
     }
     if (p.get('span')) { const [a, b] = p.get('span').split('-').map(Number); if (Number.isFinite(a) && b) state.paleo.span = [a, b]; }
     if (p.get('pt')) state.paleo.tempo = p.get('pt');
+    if (p.get('pr') && PALEO_ROOTS[p.get('pr')] != null) state.paleo.root = p.get('pr');
+    if (p.get('psc')) state.paleo.scaleId = p.get('psc');
+    state.paleo.today = p.get('ptd') === '1';
     if (p.get('trk') && p.get('m') === 'paleo') {
       state.paleo.tracks = p.get('trk').split(',').slice(0, 4).map(s => {
-        const [dataset, voice, octave] = s.split('.');
-        return { dataset, voice, octave: Number(octave) || 4 };
+        const [dataset, voice, octave, gain, offset] = s.split('.');
+        return { dataset, voice, octave: Number(octave) || 4, gain: Number(gain) || 1, offset: Number(offset) || 0 };
       });
-      while (state.paleo.tracks.length < 4) state.paleo.tracks.push({ dataset: 'off', voice: 'pluck', octave: 5 });
+      while (state.paleo.tracks.length < 4) state.paleo.tracks.push({ dataset: 'off', voice: 'pluck', octave: 5, gain: 1, offset: 0 });
     }
   } catch (e) { console.warn('share parse failed', e); }
 }
@@ -347,24 +388,73 @@ function setMode(mode) {
 
 async function prepareView() {
   try {
+    if (isLive()) $('legend-live').textContent = t('live_loading');
     await buildScore();
     redraw(-1);
     updateRuleLine();
-  } catch (e) { console.error(e); }
+    if (isLive()) $('legend-live').textContent = t('legend_idle');
+  } catch (e) {
+    console.error(e);
+    $('legend-live').textContent = t(isLive() ? 'live_error' : 'data_error');
+  }
 }
 
-function fillCitySelect() {
+function fillCitySelect(results = null) {
   const sel = $('sel-city');
   sel.innerHTML = '';
-  const og = document.createElement('option');
-  og.value = 'global'; og.textContent = t('dataset_global');
-  sel.appendChild(og);
-  for (const c of state.cityIndex) {
+  const add = (value, label) => {
     const o = document.createElement('option');
-    o.value = c.id; o.textContent = `${c.label}, ${c.country}`;
+    o.value = value; o.textContent = label;
     sel.appendChild(o);
+    return o;
+  };
+  if (results) {
+    for (const r of results) add(r.value, r.label);
+    if (!results.length) add('global', t('dataset_global'));
+  } else {
+    add('global', t('dataset_global'));
+    for (const c of state.cityIndex) add(c.id, `${c.label}, ${c.country}`);
+  }
+  // make sure the current dataset stays selectable (e.g. live city from a link)
+  if (![...sel.options].some(o => o.value === state.dataset)) {
+    if (String(state.dataset).startsWith('live|')) {
+      const [, , label] = state.dataset.split('|');
+      add(state.dataset, `${label} · live`);
+    }
   }
   sel.value = state.dataset;
+  if (sel.selectedIndex < 0 && sel.options.length) sel.selectedIndex = 0;
+}
+
+// worldwide search over the full Berkeley Earth catalogue (~3500 places)
+async function searchCities(q) {
+  q = q.trim().toLowerCase();
+  if (q.length < 2) { fillCitySelect(); return; }
+  if (!state.cityAll) {
+    try { state.cityAll = await loadCityIndexAll(); } catch (e) { console.error(e); return; }
+  }
+  const curatedByLoc = new Map(state.cityIndex.map(c => [c.location, c]));
+  const results = [];
+  for (const r of state.cityAll) {
+    const label = `${r.l}, ${r.c}`;
+    if (!label.toLowerCase().includes(q)) continue;
+    const cur = curatedByLoc.get(r.loc);
+    results.push(cur
+      ? { value: cur.id, label }
+      : { value: `live|${r.loc}|${r.l}`, label: `${label} · live` });
+    if (results.length >= 80) break;
+  }
+  // prefix matches first, then curated before live
+  results.sort((a, b) =>
+    (b.label.toLowerCase().startsWith(q) - a.label.toLowerCase().startsWith(q))
+    || (b.value.startsWith('live|') ? -1 : 1) - (a.value.startsWith('live|') ? -1 : 1)
+    || a.label.localeCompare(b.label));
+  fillCitySelect(results);
+  if (results.length) {
+    $('sel-city').value = results[0].value;
+    state.dataset = results[0].value;
+    prepareView();
+  }
 }
 
 function buildStudioCards() {
@@ -474,8 +564,8 @@ function buildPaleoUI() {
     b.addEventListener('click', async () => {
       state.paleo.constellation = id;
       state.paleo.span = def.span.slice();
-      state.paleo.tracks = def.tracks.map(([dataset, voice, octave]) => ({ dataset, voice, octave }));
-      while (state.paleo.tracks.length < 4) state.paleo.tracks.push({ dataset: 'off', voice: 'pluck', octave: 5 });
+      state.paleo.tracks = def.tracks.map(([dataset, voice, octave]) => ({ dataset, voice, octave, gain: 1, offset: 0 }));
+      while (state.paleo.tracks.length < 4) state.paleo.tracks.push({ dataset: 'off', voice: 'pluck', octave: 5, gain: 1, offset: 0 });
       buildPaleoUI();
       await startPlayback();
     });
@@ -508,14 +598,79 @@ function buildPaleoUI() {
     }
     osel.value = String([3, 5, 6].includes(tr.octave) ? tr.octave : 5);
     osel.addEventListener('change', () => { tr.octave = Number(osel.value); });
+
+    const mkSlider = (labelKey, min, max, step, val, fmtVal, onSet) => {
+      const wrap = document.createElement('label');
+      wrap.className = 'paleo-slider';
+      const cap = document.createElement('span');
+      cap.textContent = `${t(labelKey)} ${fmtVal(val)}`;
+      const inp = document.createElement('input');
+      inp.type = 'range'; inp.min = min; inp.max = max; inp.step = step; inp.value = val;
+      inp.addEventListener('input', () => {
+        onSet(Number(inp.value));
+        cap.textContent = `${t(labelKey)} ${fmtVal(Number(inp.value))}`;
+      });
+      wrap.append(cap, inp);
+      return wrap;
+    };
+    const gainS = mkSlider('paleo_gain', 0, 1.5, 0.1, tr.gain ?? 1, v => v.toFixed(1), v => { tr.gain = v; });
+    const offS = mkSlider('paleo_offset', -50, 50, 5, tr.offset ?? 0, v => (v > 0 ? '+' : '') + v + ' kyr', v => { tr.offset = v; });
+
     const lbl = document.createElement('span');
     lbl.className = 'paleo-row-n'; lbl.textContent = `${t('paleo_track')} ${i + 1}`;
-    row.append(lbl, dsel, vsel, osel);
+    row.append(lbl, dsel, vsel, osel, gainS, offS);
     rows.appendChild(row);
   });
   $('sel-span').value = state.paleo.span.join('-');
   $('sel-ptempo').value = state.paleo.tempo;
+  $('sel-proot').value = state.paleo.root;
+  $('sel-pscale').value = state.paleo.scaleId;
+  $('tgl-today').checked = state.paleo.today;
+  updatePaleoPeriods();
+  buildPaleoExps();
   updatePaleoInfo();
+}
+
+// how long one orbital cycle takes to *hear* at the current tempo
+function updatePaleoPeriods() {
+  const [from, to] = state.paleo.span;
+  const span = to - from;
+  const n = Math.max(120, Math.min(440, Math.round(span / 2)));
+  const stepKyr = span / n;
+  const stepSec = { slow: 0.2, mid: 0.13, fast: 0.085 }[state.paleo.tempo];
+  const s = p => (p / stepKyr * stepSec).toFixed(1);
+  $('paleo-periods').textContent = t('paleo_periods', { p100: s(100), p41: s(41), p21: s(21) });
+}
+
+const PALEO_EXPS = [
+  { id: 'pexp1', cfg: { span: [0, 800], tempo: 'mid', today: false, tracks: [{ dataset: 'lr04', voice: 'lead', octave: 5 }] } },
+  { id: 'pexp2', cfg: { span: [0, 800], tempo: 'mid', today: false, tracks: [{ dataset: 'epica_co2', voice: 'bass', octave: 3 }, { dataset: 'epica_temp', voice: 'lead', octave: 5 }] } },
+  { id: 'pexp3', cfg: { span: [0, 800], tempo: 'mid', today: false, tracks: [{ dataset: 'epica_co2', voice: 'bass', octave: 3, offset: 20 }, { dataset: 'epica_temp', voice: 'lead', octave: 5 }] } },
+  { id: 'pexp4', cfg: { span: [10, 60], tempo: 'fast', today: false, tracks: [{ dataset: 'ngrip', voice: 'lead', octave: 5 }] } }
+];
+
+function buildPaleoExps() {
+  const wrap = $('paleo-exps');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  for (const d of PALEO_EXPS) {
+    const card = document.createElement('div');
+    card.className = 'exp-card';
+    card.innerHTML = `<span class="exp-title">${t(d.id + '_t')}</span><span class="exp-sub">${t(d.id + '_s')}</span>`;
+    const b = document.createElement('button');
+    b.className = 'exp-btn'; b.textContent = '▶ ' + t('play');
+    b.addEventListener('click', async () => {
+      state.paleo.span = d.cfg.span.slice();
+      state.paleo.tempo = d.cfg.tempo;
+      state.paleo.today = d.cfg.today;
+      state.paleo.tracks = d.cfg.tracks.map(tr => ({ gain: 1, offset: 0, ...tr }));
+      while (state.paleo.tracks.length < 4) state.paleo.tracks.push({ dataset: 'off', voice: 'pluck', octave: 5, gain: 1, offset: 0 });
+      buildPaleoUI();
+      await startPlayback();
+    });
+    card.appendChild(b);
+    wrap.appendChild(card);
+  }
 }
 
 function updatePaleoInfo() {
@@ -563,11 +718,21 @@ function wire() {
 
   $('tgl-loop').addEventListener('change', e => { state.loop = e.target.checked; updateLoopStatus(); });
 
+  let searchTimer = null;
+  $('city-search').addEventListener('input', e => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => searchCities(e.target.value), 250);
+  });
+
   $('sel-span').addEventListener('change', e => {
     const [a, b] = e.target.value.split('-').map(Number);
     state.paleo.span = [a, b];
+    updatePaleoPeriods();
   });
-  $('sel-ptempo').addEventListener('change', e => { state.paleo.tempo = e.target.value; });
+  $('sel-ptempo').addEventListener('change', e => { state.paleo.tempo = e.target.value; updatePaleoPeriods(); });
+  $('sel-proot').addEventListener('change', e => { state.paleo.root = e.target.value; });
+  $('sel-pscale').addEventListener('change', e => { state.paleo.scaleId = e.target.value; });
+  $('tgl-today').addEventListener('change', e => { state.paleo.today = e.target.checked; });
 
   window.addEventListener('resize', () => redraw(state.handle ? playFracFromPos(state.handle.position()) : -1));
 }

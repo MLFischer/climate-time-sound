@@ -360,7 +360,10 @@ export function buildPaleoScore(tracks, opts = {}) {
   for (let i = 0; i <= n; i++) meta.ages.push(to - i * step);
 
   active.forEach((tr, ti) => {
-    const vals = paleoOnGrid(tr.series, grid);
+    // time shift (lead–lag teaching tool): evaluate the series `offset` kyr
+    // earlier, i.e. a positive shift moves its features towards the present
+    const offset = tr.offset || 0;
+    const vals = paleoOnGrid(tr.series, offset ? grid.map(g => g - offset) : grid);
     const fin = vals.filter(Number.isFinite);
     if (!fin.length) return;
     const lo = quantile(fin, 0.02), hi = quantile(fin, 0.98);
@@ -368,12 +371,13 @@ export function buildPaleoScore(tracks, opts = {}) {
     const midiLo = oct * 12 + 12, midiHi = midiLo + 22;
     const pan = active.length > 1 ? (ti / (active.length - 1)) * 1.2 - 0.6 : 0;
     const gain = tr.gain ?? 1;
-    const norm = [];
+    const norm = [], raw = [];
     for (let i = 0; i <= n; i++) {
       const v = vals[n - i];                        // reversed: old -> present
       norm.push(Number.isFinite(v) ? clamp01((v - lo) / (hi - lo)) : NaN);
+      raw.push(Number.isFinite(v) ? +v.toPrecision(4) : NaN);
     }
-    meta.tracks.push({ dataset: tr.dataset, voice: tr.voice, norm, pan });
+    meta.tracks.push({ dataset: tr.dataset, voice: tr.voice, norm, raw, pan, offset });
 
     for (let i = 0; i <= n; i++) {
       const x = norm[i];
@@ -413,9 +417,21 @@ export function buildPaleoScore(tracks, opts = {}) {
     }
   });
 
+  // today marker: one closing tone far above everything heard — as far above
+  // as today's CO₂ (424 ppm) sits above the entire glacial range (~180–280).
+  let tail = 3;
+  if (opts.todayMarker) {
+    const tEnd = lead + (n + 1) * stepSec + 0.6;
+    const fHigh = midiFreq(snapToScale(root + 46, root, scale));
+    ev.push({ t: tEnd, dur: 3.2, track: 'extremes', voice: 'bell', f: fHigh, vel: 0.34, send: { verb: 0.55, delay: 0.3 } });
+    ev.push({ t: tEnd, dur: 2.2, track: 'extremes', voice: 'impact', f: 90, vel: 0.26, send: { verb: 0.4 } });
+    meta.today = true;
+    tail = 5;
+  }
+
   return {
     events: ev,
-    duration: lead + (n + 1) * stepSec + 3,
+    duration: lead + (n + 1) * stepSec + tail,
     mix: { delayTime: stepSec * 3, delayFb: 0.4, verbSec: 4.5, verbDecay: 3, duck: 0 },
     meta
   };
