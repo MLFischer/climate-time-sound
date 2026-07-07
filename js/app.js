@@ -9,7 +9,7 @@ import { drawClimate, drawPaleo } from './viz.js';
 const $ = id => document.getElementById(id);
 
 const state = {
-  mode: 'learn',
+  mode: 'studio',                 // studio is the front door — one click, one piece
   dataset: 'berlin', yearFrom: 1970, yearTo: 2020,
   source: 'anomaly', world: 'warm', tempo: 'mid',
   toggles: { melody: true, bass: true, pad: true, extremes: true, perc: true },
@@ -96,7 +96,9 @@ async function buildScore() {
   const raw = await loadDataset(state.dataset);
   state.material = buildMaterial(raw, state.yearFrom, state.yearTo);
   const styleId = state.mode === 'studio' ? state.styleId : WORLD_STYLE[state.world];
-  const tempoMult = state.mode === 'studio' ? 1 : TEMPO_MULT[state.tempo];
+  // studio always plays the full record; fullMult compresses ~170 years
+  // to a ~4-minute piece (one month = one 16th note)
+  const tempoMult = state.mode === 'studio' ? (STYLES[styleId].fullMult ?? 1) : TEMPO_MULT[state.tempo];
   state.score = buildClimateScore(state.material, styleId, {
     source: state.mode === 'studio' ? 'anomaly' : state.source,
     tempoMult, seed: 20260706
@@ -154,7 +156,7 @@ async function loopAdvance(startAtOverride) {
     const cityId = nextCityId(state.dataset);
     const raw = await loadCity(cityId);
     const material = buildMaterial(raw, st.years[0], st.years[1]);
-    const score = buildClimateScore(material, state.styleId, { source: 'anomaly', tempoMult: 1, seed: 20260706 });
+    const score = buildClimateScore(material, state.styleId, { source: 'anomaly', tempoMult: st.fullMult ?? 1, seed: 20260706 });
     if (state.handle !== cur) return;              // stopped/changed meanwhile
     const startAt = startAtOverride ?? (cur.t0 + state.score.meta.bodyEnd);
     const handle = play(score, {
@@ -278,7 +280,9 @@ function redraw(frac) {
       drawPaleo(canvas, state.score.meta, labels, frac);
     }
   } else if (state.material) {
-    drawClimate(canvas, state.material, frac);
+    drawClimate(canvas, state.material, frac, {
+      labels: { monthly: t('viz_monthly'), trend: t('viz_trend') }
+    });
   }
 }
 
@@ -756,6 +760,11 @@ function refreshTexts() {
 
 async function init() {
   decodeShare();
+  if (state.mode === 'studio') {
+    const st = STYLES[state.styleId];
+    state.dataset = st.city;
+    state.yearFrom = st.years[0]; state.yearTo = st.years[1];
+  }
   try { state.cityIndex = await loadCityIndex(); } catch (e) { console.error(e); }
   wire();
   refreshTexts();

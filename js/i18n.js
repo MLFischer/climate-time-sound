@@ -103,6 +103,8 @@ const STR = {
     en: 'rule: {lo} … {hi} °C → {range} in {scale}'
   },
   legend_rule_range: { de: '2 oktaven', en: '2 octaves' },
+  viz_monthly: { de: 'monatswerte', en: 'monthly values' },
+  viz_trend: { de: '10-jahres-trend', en: '10-year trend' },
 
   // ---- experiments ----
   exp_intro: {
@@ -164,8 +166,8 @@ const STR = {
 
   // ---- studio ----
   studio_intro: {
-    de: 'Zwölf fertige Stil-Partituren. Jede Karte ist ein komplettes Stück: eine Stadt, ein Zeitfenster, ein Stil — die Daten bestimmen Melodie, Bass und Akzente. Klick = spielen.',
-    en: 'Twelve finished style scores. Each card is a complete piece: one city, one time window, one style — the data drives melody, bass and accents. Click to play.'
+    de: 'Zwölf fertige Stil-Partituren über die volle Messreihe 1850–2020: ein Monat = eine Sechzehntel, ~170 Jahre in gut vier Minuten. Die Daten bestimmen Melodie, Bass und Akzente — höre, wie das Stück zum Ende hin steigt. Klick = spielen.',
+    en: 'Twelve finished style scores across the full record 1850–2020: one month = one sixteenth note, ~170 years in just over four minutes. The data drives melody, bass and accents — hear the piece climb towards the end. Click to play.'
   },
   studio_now: { de: 'gerade geladen', en: 'now loaded' },
   refs: { de: 'im geiste von', en: 'in the spirit of' },

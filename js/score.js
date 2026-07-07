@@ -55,62 +55,62 @@ export function mulberry32(seed) {
 export const STYLES = {
   dub: {
     bpm: 120, scale: 'minor', root: 45, swing: 0,
-    city: 'berlin', years: [1995, 2020], refs: 'Basic Channel · Deepchord',
+    city: 'berlin', years: [1850, 2020], fullMult: 0.25, refs: 'Basic Channel · Deepchord',
     mix: { delayTime: 0.375, delayFb: 0.58, verbSec: 3.4, verbDecay: 2.8, duck: 0.38 }
   },
   hypnotic: {
     bpm: 122, scale: 'pentMinor', root: 45, swing: 0,
-    city: 'tokyo', years: [1995, 2020], refs: 'Donato Dozzy · Plastikman',
+    city: 'tokyo', years: [1850, 2020], fullMult: 0.25, refs: 'Donato Dozzy · Plastikman',
     mix: { delayTime: 0.369, delayFb: 0.42, verbSec: 2.2, verbDecay: 2.6, duck: 0.3 }
   },
   driving: {
     bpm: 128, scale: 'minor', root: 45, swing: 0,
-    city: 'detroit', years: [1998, 2020], refs: 'Jeff Mills · Robert Hood',
+    city: 'detroit', years: [1850, 2020], fullMult: 0.25, refs: 'Jeff Mills · Robert Hood',
     mix: { delayTime: 0.352, delayFb: 0.35, verbSec: 1.9, verbDecay: 2.4, duck: 0.45 }
   },
   acid: {
     bpm: 130, scale: 'phrygian', root: 45, swing: 0.10,
-    city: 'chicago', years: [1998, 2020], refs: 'Phuture · DJ Pierre',
+    city: 'chicago', years: [1850, 2020], fullMult: 0.25, refs: 'Phuture · DJ Pierre',
     mix: { delayTime: 0.346, delayFb: 0.38, verbSec: 1.7, verbDecay: 2.4, duck: 0.42 }
   },
   electro: {
     bpm: 125, scale: 'minor', root: 45, swing: 0,
-    city: 'newyork', years: [1998, 2020], refs: 'Drexciya · Afrika Bambaataa',
+    city: 'newyork', years: [1850, 2020], fullMult: 0.25, refs: 'Drexciya · Afrika Bambaataa',
     mix: { delayTime: 0.36, delayFb: 0.32, verbSec: 1.8, verbDecay: 2.4, duck: 0.35 }
   },
   industrial: {
     bpm: 132, scale: 'phrygian', root: 43, swing: 0,
-    city: 'birmingham', years: [1990, 2020], refs: 'Surgeon · Ancient Methods · Perc',
+    city: 'birmingham', years: [1850, 2020], fullMult: 0.25, refs: 'Surgeon · Ancient Methods · Perc',
     mix: { delayTime: 0.341, delayFb: 0.45, verbSec: 1.6, verbDecay: 2.0, duck: 0.3 }
   },
   idm: {
     bpm: 109, scale: 'dorian', root: 47, swing: 0.08,
-    city: 'manchester', years: [1998, 2020], refs: 'Aphex Twin · Autechre',
+    city: 'manchester', years: [1850, 2020], fullMult: 0.22, refs: 'Aphex Twin · Autechre',
     mix: { delayTime: 0.413, delayFb: 0.4, verbSec: 2.2, verbDecay: 2.6, duck: 0.25 }
   },
   downtempo: {
     bpm: 100, scale: 'dorian', root: 48, swing: 0.09,
-    city: 'lisbon', years: [2000, 2020], refs: 'Bonobo · Four Tet · Ben Böhmer',
+    city: 'lisbon', years: [1850, 2020], fullMult: 0.21, refs: 'Bonobo · Four Tet · Ben Böhmer',
     mix: { delayTime: 0.45, delayFb: 0.35, verbSec: 2.6, verbDecay: 2.6, duck: 0.3 }
   },
   triphop: {
     bpm: 86, scale: 'minor', root: 45, swing: 0.13,
-    city: 'london', years: [2000, 2020], refs: 'Massive Attack · Portishead',
+    city: 'london', years: [1850, 2020], fullMult: 0.18, refs: 'Massive Attack · Portishead',
     mix: { delayTime: 0.523, delayFb: 0.4, verbSec: 3.0, verbDecay: 2.6, duck: 0.35 }
   },
   neoclassic: {
     bpm: 100, scale: 'minor', root: 57, swing: 0,
-    city: 'paris', years: [2000, 2020], refs: 'Nils Frahm · Max Richter',
+    city: 'paris', years: [1850, 2020], fullMult: 0.2, refs: 'Nils Frahm · Max Richter',
     mix: { delayTime: 0.6, delayFb: 0.25, verbSec: 3.6, verbDecay: 2.8, duck: 0 }
   },
   ambient: {
     bpm: 50, scale: 'dorian', root: 50, swing: 0,
-    city: 'reykjavik', years: [2008, 2020], refs: 'Brian Eno · Stars of the Lid · GAS',
+    city: 'reykjavik', years: [1850, 2020], fullMult: 0.1, refs: 'Brian Eno · Stars of the Lid · GAS',
     mix: { delayTime: 0.9, delayFb: 0.45, verbSec: 5.5, verbDecay: 3.2, duck: 0 }
   },
   drone: {
     bpm: 30, scale: 'phrygian', root: 38, swing: 0,
-    city: 'oslo', years: [2013, 2020], refs: 'Tim Hecker · Thomas Köner · Basinski',
+    city: 'oslo', years: [1850, 2020], fullMult: 0.06, refs: 'Tim Hecker · Thomas Köner · Basinski',
     mix: { delayTime: 1.1, delayFb: 0.5, verbSec: 6.5, verbDecay: 3.4, duck: 0 }
   }
 };
@@ -162,6 +162,22 @@ export function buildClimateScore(material, styleId, opts = {}) {
   const bSwing = st.swing * bDur / 4;
   const TB = (mi, slot = 0) => lead + mi * spm + slot * bDur / 4 + ((slot % 2) ? bSwing : 0);
 
+  // Full-span mode (studio, 1850–2020): one beat spans 4 months, so melody
+  // switches to the 16th grid — one month = one 16th note. Data-faithful and
+  // stylistically right: at ~120 bpm a month is exactly a sixteenth.
+  const gridMode = beatStyle && beatEvery > 1;
+
+  // beatless styles: group months so note spacing keeps the style's pacing
+  const melTarget = { neoclassic: 0.45, ambient: 1.2, drone: 4.0 }[styleId] || 0;
+  const melEvery = !beatStyle ? Math.max(1, Math.round(melTarget / spm)) : 1;
+  const groupVal = (i, g) => {
+    let s = 0, c = 0;
+    for (let k = i; k < Math.min(rows.length, i + g); k++) {
+      if (Number.isFinite(val[k])) { s += val[k]; c++; }
+    }
+    return c ? s / c : val[i];
+  };
+
   const monthNotes = [];
 
   rows.forEach((r, i) => {
@@ -177,7 +193,52 @@ export function buildClimateScore(material, styleId, opts = {}) {
     const yearStart = r.month === 1;
 
     // ---------- melody ----------
-    switch (styleId) {
+    if (gridMode) {
+      // one month = one 16th note on the beat grid
+      const sIB = i % beatEvery;                    // slot within the beat
+      switch (styleId) {
+        case 'dub':
+          if (sIB === 2) ev.push({ t: T(i, 0), dur: bDur * 0.7, track: 'melody', voice: 'stab', fs: scaleChord(root, scale, degree, root + 12).map(midiFreq), vel: 0.24 * vj(), bright: 0.15 + 0.45 * n01, send: { delay: 0.55, verb: 0.25 } });
+          break;
+        case 'hypnotic':
+          ev.push({ t: T(i, 0), dur: spm * 1.6, track: 'melody', voice: 'pluck', f: i % 2 ? midiFreq(snapToScale(midi + 7, root, scale)) : f, vel: (i % 2 ? 0.2 : 0.3 * velMel) * vj(), bright, send: { delay: 0.4, verb: 0.1 } });
+          break;
+        case 'driving':
+          if (i % (2 * beatEvery) === 0) ev.push({ t: T(i, 0), dur: bDur * 0.55, track: 'melody', voice: 'stab', fs: scaleChord(root, scale, degree, root + 24).map(midiFreq), vel: 0.22 * vj(), bright: 0.5 + 0.5 * n01, send: { delay: 0.3, verb: 0.15 } });
+          if (r.hot) ev.push({ t: T(i, 0), dur: spm * 0.8, track: 'melody', voice: 'acid', f: f * 2, vel: 0.15, bright: n01, send: { delay: 0.35 } });
+          break;
+        case 'acid': {
+          if (rand() < 0.15) break;
+          const prev = i > 0 ? midiFreq(mapToMidi(val[i - 1], vLo, vHi, melLo, melHi, root, scale)) : null;
+          ev.push({ t: T(i, 0), dur: spm * 0.95, track: 'melody', voice: 'acid', f, slide: prev && Math.abs(prev - f) > 1 && rand() < 0.5 ? prev : null, accent: r.hot || r.record, vel: 0.32 * vj(), bright: n01, send: { delay: 0.3, verb: 0.08 } });
+          break;
+        }
+        case 'electro':
+          if (sIB === 0 || sIB === 3) ev.push({ t: T(i, 0), dur: spm * 1.2, track: 'melody', voice: 'pluck', f: sIB === 3 ? f / 2 : f, vel: 0.28 * vj() * (sIB === 3 ? 0.7 : 1), bright, send: { delay: 0.25, verb: 0.1 } });
+          break;
+        case 'industrial':
+          if (i % (2 * beatEvery) === 0) ev.push({ t: T(i, 0), dur: bDur * 0.8, track: 'melody', voice: 'bell', f: f * 1.5, vel: 0.17 * vj(), send: { verb: 0.35, delay: 0.3 } });
+          break;
+        case 'idm': {
+          if (i % 2 !== 0) break;
+          const jumpOct = rand() < 0.2 ? 12 : 0;
+          ev.push({ t: T(i, 0) + hum(), dur: spm * 1.8, track: 'melody', voice: 'pluck', f: midiFreq(midi + jumpOct), vel: 0.3 * velMel * vj(), bright, send: { delay: 0.4, verb: 0.15 } });
+          break;
+        }
+        case 'downtempo':
+          if (sIB === 0) {
+            const gm = mapToMidi(groupVal(i, beatEvery), vLo, vHi, melLo, melHi, root, scale);
+            ev.push({ t: T(i, 0) + hum(), dur: bDur * 0.8, track: 'melody', voice: 'pluck', f: midiFreq(gm), vel: 0.32 * velMel * vj(), bright, send: { delay: 0.3, verb: 0.2 } });
+          }
+          break;
+        case 'triphop':
+          if (i % (2 * beatEvery) === 0) {
+            const gm = mapToMidi(groupVal(i, 2 * beatEvery), vLo, vHi, melLo, melHi, root, scale);
+            ev.push({ t: T(i, 0) + hum(), dur: bDur * 1.2, track: 'melody', voice: 'pluck', f: midiFreq(gm), vel: 0.3 * velMel * vj(), bright: bright * 0.8, send: { delay: 0.35, verb: 0.25 } });
+          }
+          break;
+      }
+    } else switch (styleId) {
       case 'dub':
         ev.push({ t: T(i, 2) + hum(), dur: spm * 0.7, track: 'melody', voice: 'stab', fs: scaleChord(root, scale, degree, root + 12).map(midiFreq), vel: 0.24 * vj(), bright: 0.15 + 0.45 * n01, send: { delay: 0.55, verb: 0.25 } });
         break;
@@ -218,13 +279,22 @@ export function buildClimateScore(material, styleId, opts = {}) {
         if (i % 2 === 0) ev.push({ t: T(i, 0) + hum(), dur: spm * 1.2, track: 'melody', voice: 'pluck', f, vel: 0.3 * velMel * vj(), bright: bright * 0.8, send: { delay: 0.35, verb: 0.25 } });
         break;
       case 'neoclassic':
-        ev.push({ t: T(i, 0) + hum() * 2, dur: Math.max(1.2, spm * 1.6), track: 'melody', voice: 'piano', f, vel: 0.34 * velMel * vj(), send: { verb: 0.4 } });
+        if (i % melEvery === 0) {
+          const gm = melEvery > 1 ? mapToMidi(groupVal(i, melEvery), vLo, vHi, melLo, melHi, root, scale) : midi;
+          ev.push({ t: T(i, 0) + hum() * 2, dur: Math.max(1.2, spm * melEvery * 1.6), track: 'melody', voice: 'piano', f: midiFreq(gm), vel: 0.34 * velMel * vj(), send: { verb: 0.4 } });
+        }
         break;
       case 'ambient':
-        ev.push({ t: T(i, 0), dur: spm * 3, track: 'melody', voice: 'pad', f, vel: 0.16 * vj(), bright: 0.25 + 0.35 * n01, pan: (rand() - 0.5) * 0.8, send: { verb: 0.5, delay: 0.2 } });
+        if (i % melEvery === 0) {
+          const gm = melEvery > 1 ? mapToMidi(groupVal(i, melEvery), vLo, vHi, melLo, melHi, root, scale) : midi;
+          ev.push({ t: T(i, 0), dur: spm * melEvery * 3, track: 'melody', voice: 'pad', f: midiFreq(gm), vel: 0.16 * vj(), bright: 0.25 + 0.35 * n01, pan: (rand() - 0.5) * 0.8, send: { verb: 0.5, delay: 0.2 } });
+        }
         break;
       case 'drone':
-        if (i % 2 === 0) ev.push({ t: T(i, 0), dur: spm * 2.6, track: 'melody', voice: 'drone', f: f / 2, vel: 0.2 * vj(), bright: 0.15 + 0.3 * n01, send: { verb: 0.5 } });
+        if (i % (2 * melEvery) === 0) {
+          const gm = melEvery > 1 ? mapToMidi(groupVal(i, 2 * melEvery), vLo, vHi, melLo, melHi, root, scale) : midi;
+          ev.push({ t: T(i, 0), dur: spm * melEvery * 2.6, track: 'melody', voice: 'drone', f: midiFreq(gm) / 2, vel: 0.2 * vj(), bright: 0.15 + 0.3 * n01, send: { verb: 0.5 } });
+        }
         break;
     }
 
@@ -232,9 +302,9 @@ export function buildClimateScore(material, styleId, opts = {}) {
     const gi = Math.floor(i / beatEvery);          // beat-group index
     const onBeat = i % beatEvery === 0;
     if (styleId === 'neoclassic') {
-      if (yearStart) ev.push({ t: T(i, 0), dur: spm * 3.5, track: 'bass', voice: 'sub', f: fBass, vel: 0.14, send: { verb: 0.2 } });
+      if (yearStart) ev.push({ t: T(i, 0), dur: Math.max(1.2, spm * 3.5), track: 'bass', voice: 'sub', f: fBass, vel: 0.14, send: { verb: 0.2 } });
     } else if (styleId === 'ambient' || styleId === 'drone') {
-      if (i % 4 === 0) ev.push({ t: T(i, 0), dur: spm * 4.5, track: 'bass', voice: 'sub', f: fBass, vel: 0.22 });
+      if (i % (4 * melEvery) === 0) ev.push({ t: T(i, 0), dur: spm * melEvery * 4.5, track: 'bass', voice: 'sub', f: fBass, vel: 0.22 });
     } else if (styleId === 'electro') {
       if (onBeat) for (const s of [0, 3]) ev.push({ t: TB(i, s), dur: bDur * 0.35, track: 'bass', voice: 'sub', f: s === 3 ? fBass * 2 : fBass, vel: 0.34 * (s === 3 ? 0.6 : 1) });
     } else if (styleId === 'hypnotic') {
@@ -246,7 +316,7 @@ export function buildClimateScore(material, styleId, opts = {}) {
     }
 
     // ---------- pad = seasonal cycle (or hemispheres for the global record) --
-    const padEvery = beatStyle ? 4 * beatEvery : 2;
+    const padEvery = beatStyle ? 4 * beatEvery : 2 * melEvery;
     if (i % padEvery === 0) {
       if (r.nh != null && r.sh != null) {
         const fN = midiFreq(mapToMidi(r.nh, -3, 17, root + 7, root + 19, root, scale));
@@ -304,8 +374,11 @@ export function buildClimateScore(material, styleId, opts = {}) {
     }
 
     // ---------- extremes: records, jumps, heat runs, cold snaps ----------
-    if (r.hot && beatStyle) for (const s of [1, 3]) ev.push({ t: T(i, s), dur: 0.25, track: 'extremes', voice: 'hat', vel: 0.14, open: s === 3 });
-    if (r.runStart && beatStyle) ev.push({ t: T(i, 2), dur: 0.3, track: 'extremes', voice: 'hat', vel: 0.2, open: true });
+    if (r.hot && beatStyle) {
+      if (gridMode) ev.push({ t: T(i, 0), dur: 0.25, track: 'extremes', voice: 'hat', vel: 0.13 });
+      else for (const s of [1, 3]) ev.push({ t: T(i, s), dur: 0.25, track: 'extremes', voice: 'hat', vel: 0.14, open: s === 3 });
+    }
+    if (r.runStart && beatStyle) ev.push({ t: gridMode ? T(i, 0) : T(i, 2), dur: 0.3, track: 'extremes', voice: 'hat', vel: 0.2, open: true });
     if (r.record) {
       if (beatStyle) {
         ev.push({ t: T(Math.max(0, i - 4), 0), dur: spm * 4, track: 'extremes', voice: 'riser', vel: 0.12 });
@@ -315,7 +388,8 @@ export function buildClimateScore(material, styleId, opts = {}) {
       }
     }
     if (r.jump && beatStyle) {
-      if (styleId === 'industrial') ev.push({ t: T(i, 1), dur: 0.3, track: 'extremes', voice: 'snare', vel: 0.3, metal: true });
+      if (gridMode) ev.push({ t: T(i, 0), dur: 0.25, track: 'extremes', voice: styleId === 'industrial' ? 'snare' : 'clap', vel: 0.2, metal: styleId === 'industrial' });
+      else if (styleId === 'industrial') ev.push({ t: T(i, 1), dur: 0.3, track: 'extremes', voice: 'snare', vel: 0.3, metal: true });
       else if (styleId === 'idm') for (const s of [1, 1.5, 2, 2.5, 3]) ev.push({ t: lead + i * spm + s * spm / 4, dur: 0.1, track: 'extremes', voice: 'hat', vel: 0.1 });
       else ev.push({ t: T(i, 2), dur: 0.25, track: 'extremes', voice: 'clap', vel: 0.16 });
     }

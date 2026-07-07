@@ -28,18 +28,63 @@ function line(g, pts, color, width) {
 }
 
 // --------------------------------------------------------------- climate --
-export function drawClimate(canvas, material, playFrac = -1) {
+// Long records scroll: the main pane shows a moving ~40-year window that
+// follows the playhead (fixed y-scale, so the climb stays visible) while a
+// minimal overview strip on top shows the full record with the viewport.
+export function drawClimate(canvas, material, playFrac = -1, opts = {}) {
   const { g, w, h } = setupCanvas(canvas);
   const rows = material.rows, stats = material.stats;
   g.fillStyle = CO.bg; g.fillRect(0, 0, w, h);
-  const padL = 44, padR = 12, padT = 14, padB = 24;
+  const n = rows.length;
+  const viewMonths = opts.viewMonths ?? 480;
+  const useWindow = n > viewMonths * 1.25;
+  const mmH = useWindow ? 34 : 0;
+
+  const padL = 44, padR = 12, padB = 24;
+  const padT = mmH ? mmH + 12 : 14;
   const iw = w - padL - padR, ih = h - padT - padB;
   const lo = Math.min(stats.lo, stats.trendLo) - 0.3;
   const hi = Math.max(stats.hi, stats.trendHi) + 0.3;
-  const X = i => padL + (i / Math.max(1, rows.length - 1)) * iw;
+
+  // visible index window
+  const pi = playFrac >= 0 ? playFrac * (n - 1) : -1;
+  let i0 = 0, i1 = n - 1;
+  if (useWindow && pi >= 0) {
+    i0 = Math.round(Math.max(0, Math.min(n - viewMonths, pi - viewMonths * 0.5)));
+    i1 = Math.min(n - 1, i0 + viewMonths - 1);
+  }
+
+  const X = i => padL + ((i - i0) / Math.max(1, i1 - i0)) * iw;
   const Y = v => padT + (1 - (v - lo) / (hi - lo)) * ih;
 
-  // grid: zero line + degree steps
+  // ---- overview strip (minimap) ----
+  if (mmH) {
+    const mTop = 4, mBot = mmH - 4, mH = mBot - mTop;
+    const mY = v => mTop + (1 - (v - lo) / (hi - lo)) * mH;
+    const mX = i => padL + (i / (n - 1)) * iw;
+    const step = Math.max(1, Math.floor(n / iw));
+    const pts = [];
+    for (let i = 0; i < n; i += step) pts.push([mX(i), mY(rows[i].anomaly)]);
+    line(g, pts, '#52525c', 1);
+    const tpts = [];
+    for (let i = 0; i < n; i += step) tpts.push([mX(i), mY(rows[i].trend)]);
+    line(g, tpts, CO.trend, 1.2);
+    // viewport
+    g.strokeStyle = 'rgba(242,242,244,0.55)'; g.lineWidth = 1;
+    g.fillStyle = 'rgba(242,242,244,0.06)';
+    const vx0 = mX(i0), vx1 = mX(i1);
+    g.fillRect(vx0, mTop - 2, Math.max(3, vx1 - vx0), mH + 4);
+    g.strokeRect(vx0, mTop - 2, Math.max(3, vx1 - vx0), mH + 4);
+    g.fillStyle = CO.text; g.font = '9px ui-monospace, monospace';
+    g.fillText(String(rows[0].year), padL - 34, mBot);
+    g.fillText(String(rows[n - 1].year), w - padR - 26, mBot);
+    if (pi >= 0) {
+      g.strokeStyle = CO.play; g.beginPath();
+      g.moveTo(mX(pi), mTop - 2); g.lineTo(mX(pi), mBot + 2); g.stroke();
+    }
+  }
+
+  // ---- main pane: grid, zero line, degree labels ----
   g.strokeStyle = CO.grid; g.lineWidth = 1;
   for (let d = Math.ceil(lo); d <= Math.floor(hi); d++) {
     g.beginPath(); g.moveTo(padL, Y(d)); g.lineTo(w - padR, Y(d)); g.stroke();
@@ -49,29 +94,56 @@ export function drawClimate(canvas, material, playFrac = -1) {
   if (lo < 0 && hi > 0) {
     g.strokeStyle = CO.axis; g.beginPath(); g.moveTo(padL, Y(0)); g.lineTo(w - padR, Y(0)); g.stroke();
   }
-  // year labels
-  const y0 = rows[0].year, y1 = rows[rows.length - 1].year;
-  const yearStepC = Math.max(10, Math.round((y1 - y0) / 6 / 10) * 10);
-  g.fillStyle = CO.text;
+
+  // year ticks within the window
+  const y0 = rows[i0].year, y1 = rows[i1].year;
+  const span = Math.max(1, y1 - y0);
+  const yearStepC = span > 90 ? 20 : span > 45 ? 10 : 5;
+  g.fillStyle = CO.text; g.font = '10px ui-monospace, monospace';
   for (let yy = Math.ceil(y0 / yearStepC) * yearStepC; yy <= y1; yy += yearStepC) {
-    const i = rows.findIndex(r => r.year === yy && r.month === 1);
-    if (i >= 0) g.fillText(String(yy), X(i) - 12, h - 8);
+    for (let i = i0; i <= i1; i++) {
+      if (rows[i].year === yy && rows[i].month === 1) {
+        const x = X(i);
+        if (x > padL + 26 && x < w - padR - 30) g.fillText(String(yy), x - 12, h - 8);
+        break;
+      }
+    }
+  }
+  // explicit window bounds (xmin / xmax)
+  if (useWindow) {
+    g.fillStyle = CO.play; g.font = '10px ui-monospace, monospace';
+    g.fillText(String(y0), padL, h - 8);
+    g.fillText(String(y1), w - padR - 26, h - 8);
   }
 
-  // monthly anomaly (thin) + trend (red)
-  line(g, rows.map((r, i) => [X(i), Y(r.anomaly)]), CO.monthly, 1);
-  line(g, rows.map((r, i) => [X(i), Y(r.trend)]), CO.trend, 2.2);
+  // monthly anomaly (thin) + trend (red) within the window
+  const seg = [];
+  for (let i = i0; i <= i1; i++) seg.push([X(i), Y(rows[i].anomaly)]);
+  line(g, seg, CO.monthly, 1);
+  const tseg = [];
+  for (let i = i0; i <= i1; i++) tseg.push([X(i), Y(rows[i].trend)]);
+  line(g, tseg, CO.trend, 2.2);
 
   // extremes
-  for (let i = 0; i < rows.length; i++) {
+  for (let i = i0; i <= i1; i++) {
     const r = rows[i];
     if (r.record) { g.fillStyle = CO.hot; g.beginPath(); g.arc(X(i), Y(r.anomaly), 2.6, 0, 7); g.fill(); }
     else if (r.cold) { g.fillStyle = CO.cold; g.beginPath(); g.arc(X(i), Y(r.anomaly), 2, 0, 7); g.fill(); }
   }
 
+  // inline series labels (identity never by color alone)
+  if (opts.labels) {
+    g.font = '10px ui-monospace, monospace';
+    const lx = w - padR - 6;
+    g.textAlign = 'right';
+    g.fillStyle = CO.trend; g.fillText(opts.labels.trend, lx, padT + 12);
+    g.fillStyle = CO.monthly; g.fillText(opts.labels.monthly, lx, padT + 24);
+    g.textAlign = 'left';
+  }
+
   // playhead
-  if (playFrac >= 0 && playFrac <= 1) {
-    const x = padL + playFrac * iw;
+  if (pi >= i0 && pi <= i1) {
+    const x = X(pi);
     g.strokeStyle = CO.play; g.lineWidth = 1.4;
     g.beginPath(); g.moveTo(x, padT); g.lineTo(x, h - padB); g.stroke();
   }
