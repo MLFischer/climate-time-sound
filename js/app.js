@@ -1,10 +1,10 @@
 // app.js — UI wiring: modes, controls, playback sync, experiments, sharing.
 
-import { t, setLang, getLang, applyI18n } from './i18n.js';
-import { loadCityIndex, loadCity, loadGlobal, loadPaleo, buildMaterial, loadCityIndexAll, loadCityLive } from './data.js';
-import { play, renderWav } from './engine.js';
-import { STYLES, STYLE_ORDER, buildClimateScore, buildPaleoScore } from './score.js';
-import { drawClimate, drawPaleo } from './viz.js';
+import { t, setLang, getLang, applyI18n } from './i18n.js?v=202607071625';
+import { loadCityIndex, loadCity, loadGlobal, loadPaleo, buildMaterial, loadCityIndexAll, loadCityLive } from './data.js?v=202607071625';
+import { play, renderWav } from './engine.js?v=202607071625';
+import { STYLES, STYLE_ORDER, buildClimateScore, buildPaleoScore } from './score.js?v=202607071625';
+import { drawClimate, drawPaleo } from './viz.js?v=202607071625';
 
 const $ = id => document.getElementById(id);
 
@@ -216,12 +216,27 @@ function applyToggles() {
 // ------------------------------------------------------------- transport --
 const fmt = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 
+// Transport UI update — shared by the rAF loop (smooth) and the safety timer
+// (works even when rAF is paused, e.g. hidden tabs).
+function updateUI(pos) {
+  const h = state.handle;
+  if (!h) return;
+  const frac = Math.max(0, Math.min(1, pos / h.duration));
+  if (!state.seeking) {
+    paintSeek(frac);
+    $('time-disp').textContent = `${fmt(Math.max(0, pos))} / ${fmt(h.duration)}`;
+  }
+  redraw(playFracFromPos(pos));
+  updateLegend(pos);
+}
+
 // Loop control runs on a timer, not on requestAnimationFrame: rAF pauses in
 // background tabs, but the endless loop must keep chaining while the tab is
 // hidden (audio playback exempts the page from heavy timer throttling).
 function loopCheck() {
   const h = state.handle;
   if (!h) return;
+  updateUI(h.position());
   // prepare the next city ~4 s before the musical end …
   if (state.loop && state.mode === 'studio' && !state.next && !state.building
       && state.score?.meta?.bodyEnd && h.position() > state.score.meta.bodyEnd - 4) {
@@ -245,15 +260,7 @@ setInterval(loopCheck, 500);
 function tick() {
   const h = state.handle;
   if (!h) return;
-
-  const pos = h.position();
-  const frac = Math.max(0, Math.min(1, pos / h.duration));
-  if (!state.seeking) {
-    paintSeek(frac);
-    $('time-disp').textContent = `${fmt(Math.max(0, pos))} / ${fmt(h.duration)}`;
-  }
-  redraw(playFracFromPos(pos));
-  updateLegend(pos);
+  updateUI(h.position());
   requestAnimationFrame(tick);
 }
 
@@ -749,10 +756,12 @@ function wire() {
   });
   seek.addEventListener('pointerup', () => { state.seeking = false; });
 
-  $('sel-len').addEventListener('change', e => {
-    state.studioLen = e.target.value;
-    if (state.mode === 'studio' && state.handle) startPlayback();
-  });
+  document.querySelectorAll('#seg-len .seg-btn').forEach(b =>
+    b.addEventListener('click', () => {
+      state.studioLen = b.dataset.len;
+      syncLenSeg();
+      if (state.mode === 'studio' && state.handle) startPlayback();
+    }));
   $('btn-wav').addEventListener('click', exportWav);
   $('btn-share').addEventListener('click', copyShare);
 
@@ -810,9 +819,14 @@ function refreshTexts() {
   $('btn-wav').textContent = '⬇ ' + t('download_wav');
   $('btn-share').textContent = '🔗 ' + t('share_link');
   $('tgl-loop').checked = state.loop;
-  $('sel-len').value = state.studioLen;
+  syncLenSeg();
   updateLoopStatus();
   updateRuleLine();
+}
+
+function syncLenSeg() {
+  document.querySelectorAll('#seg-len .seg-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.len === state.studioLen));
 }
 
 async function init() {

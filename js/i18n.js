@@ -149,11 +149,11 @@ const STR = {
   // ---- studio: transport & length ----
   seek_title: { de: 'position — ziehen zum vorspulen', en: 'position — drag to seek' },
   studio_len: { de: 'dauer', en: 'duration' },
-  len_normal: { de: 'normal · ~4 min', en: 'normal · ~4 min' },
-  len_long: { de: 'lang · ~8 min', en: 'long · ~8 min' },
+  len_normal: { de: '~4 min', en: '~4 min' },
+  len_long: { de: '~8 min', en: '~8 min' },
   len_epic: { de: 'episch · ~17 min', en: 'epic · ~17 min' },
   len_hint: {
-    de: '170 jahre dürfen dauern — mit dem regler oben spulst du jederzeit vor und zurück.',
+    de: '170 Jahre dürfen dauern — mit dem Regler oben spulst du jederzeit vor und zurück.',
     en: '170 years may take their time — the slider above lets you seek at any point.'
   },
 
