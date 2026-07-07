@@ -433,10 +433,11 @@ export function scheduleEvent(session, ev, t0) {
 
 // Live playback with chunked lookahead. Returns a handle with stop() and
 // position() (seconds since score start, can be negative before start).
-export function play(score, { onEnd } = {}) {
+// `startAt` (absolute AudioContext time) allows gapless chaining of scores.
+export function play(score, { onEnd, startAt } = {}) {
   const ac = audioContext();
   const session = buildSession(ac, score.mix);
-  const t0 = ac.currentTime + 0.12;
+  const t0 = startAt && startAt > ac.currentTime + 0.05 ? startAt : ac.currentTime + 0.12;
   const events = score.events.slice().sort((a, b) => a.t - b.t);
   let i = 0, stopped = false;
 
@@ -454,6 +455,7 @@ export function play(score, { onEnd } = {}) {
 
   const handle = {
     session,
+    t0,
     duration: score.duration,
     position: () => ac.currentTime - t0,
     setTrack(id, on) {

@@ -179,6 +179,13 @@ button.exp-card:hover, .exp-card.active { border-color: var(--tx3); }
 .exp-btn:hover { border-color: var(--red); }
 
 /* ------------------------------------------------------------- studio --- */
+.loop-box {
+  background: var(--bg2); border: 1px solid var(--line); border-radius: 12px;
+  padding: 12px 16px; margin-bottom: 16px;
+}
+.loop-box .hint { margin: 2px 0 4px 24px; }
+.loop-status { color: var(--red); min-height: 16px; margin-left: 24px; }
+
 .style-grid {
   display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 14px;

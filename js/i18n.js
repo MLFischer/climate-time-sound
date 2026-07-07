@@ -133,6 +133,24 @@ const STR = {
   exp6_a: { de: 'A · Singapur', en: 'A · Singapore' },
   exp6_b: { de: 'B · Reykjavík', en: 'B · Reykjavík' },
 
+  // ---- studio: endless loop ----
+  loop_label: {
+    de: '∞ endlosschleife — die daten wandern von stadt zu stadt',
+    en: '∞ endless loop — the data travels from city to city'
+  },
+  loop_hint: {
+    de: 'Der Stil bleibt, die Stadt wechselt: Am Ende jedes Stücks wird nahtlos die nächste Messreihe im selben Stil angehängt — Dauer-Sound für Installation, Hintergrund oder Ausstellung.',
+    en: 'The style stays, the city changes: at the end of each piece the next record is chained seamlessly in the same style — continuous sound for installations, background or exhibitions.'
+  },
+  loop_armed: {
+    de: 'schleife aktiv — wähle eine stil-karte',
+    en: 'loop armed — pick a style card'
+  },
+  loop_now: {
+    de: 'läuft: {city} · als nächstes: {next}',
+    en: 'playing: {city} · up next: {next}'
+  },
+
   // ---- studio ----
   studio_intro: {
     de: 'Zwölf fertige Stil-Partituren. Jede Karte ist ein komplettes Stück: eine Stadt, ein Zeitfenster, ein Stil — die Daten bestimmen Melodie, Bass und Akzente. Klick = spielen.',

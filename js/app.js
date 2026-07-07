@@ -23,7 +23,9 @@ const state = {
       { dataset: 'off', voice: 'pluck', octave: 5 }
     ]
   },
-  material: null, score: null, handle: null, paleoData: null, cityIndex: []
+  material: null, score: null, handle: null, paleoData: null, cityIndex: [],
+  // endless loop (studio): chain city after city in the same style, gapless
+  loop: false, next: null, building: false
 };
 
 const WORLD_STYLE = { quiet: 'neoclassic', warm: 'downtempo', electronic: 'driving', wide: 'ambient' };
@@ -46,8 +48,11 @@ const CONSTELLATIONS = {
 
 // ------------------------------------------------------------------ audio --
 function stopPlayback() {
+  if (state.next) { state.next.handle.stop(); state.next = null; }
   if (state.handle) { state.handle.stop(); state.handle = null; }
+  state.building = false;
   $('btn-play').textContent = '▶ ' + t('play');
+  updateLoopStatus();
 }
 
 async function buildScore() {
@@ -81,11 +86,58 @@ async function startPlayback() {
   }
   redraw(-1);
   updateRuleLine();
-  const handle = play(state.score, { onEnd: () => { if (state.handle === handle) { state.handle = null; $('btn-play').textContent = '▶ ' + t('play'); redraw(-1); } } });
+  const handle = play(state.score, { onEnd: () => { if (state.handle === handle && !state.next) { state.handle = null; $('btn-play').textContent = '▶ ' + t('play'); redraw(-1); updateLoopStatus(); } } });
   state.handle = handle;
   applyToggles();
   $('btn-play').textContent = '■ ' + t('stop');
+  updateLoopStatus();
   requestAnimationFrame(tick);
+}
+
+// ------------------------------------------------------- endless loop ----
+function nextCityId(cur) {
+  const ids = state.cityIndex.map(c => c.id);
+  if (!ids.length) return cur;
+  return ids[(ids.indexOf(cur) + 1) % ids.length];
+}
+
+function cityLabel(id) {
+  return state.cityIndex.find(c => c.id === id)?.label ?? id;
+}
+
+function updateLoopStatus() {
+  const el = $('loop-status');
+  if (!el) return;
+  if (!state.loop || state.mode !== 'studio') { el.textContent = ''; return; }
+  el.textContent = state.handle
+    ? t('loop_now', { city: cityLabel(state.dataset), next: cityLabel(nextCityId(state.dataset)) })
+    : t('loop_armed');
+}
+
+// Build the next city's score in the current style and schedule it exactly
+// at the musical end of the running piece (fx tails overlap -> gapless).
+async function loopAdvance(startAtOverride) {
+  if (state.building || state.next || !state.handle) return;
+  state.building = true;
+  try {
+    const cur = state.handle;
+    const st = STYLES[state.styleId];
+    const cityId = nextCityId(state.dataset);
+    const raw = await loadCity(cityId);
+    const material = buildMaterial(raw, st.years[0], st.years[1]);
+    const score = buildClimateScore(material, state.styleId, { source: 'anomaly', tempoMult: 1, seed: 20260706 });
+    if (state.handle !== cur) return;              // stopped/changed meanwhile
+    const startAt = startAtOverride ?? (cur.t0 + state.score.meta.bodyEnd);
+    const handle = play(score, {
+      startAt,
+      onEnd: () => { if (state.handle === handle && !state.next) { state.handle = null; $('btn-play').textContent = '▶ ' + t('play'); redraw(-1); updateLoopStatus(); } }
+    });
+    state.next = { handle, score, material, cityId };
+  } catch (e) {
+    console.error('loop advance failed', e);
+  } finally {
+    state.building = false;
+  }
 }
 
 function applyToggles() {
@@ -102,9 +154,36 @@ function applyToggles() {
 // ------------------------------------------------------------- transport --
 const fmt = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 
+// Loop control runs on a timer, not on requestAnimationFrame: rAF pauses in
+// background tabs, but the endless loop must keep chaining while the tab is
+// hidden (audio playback exempts the page from heavy timer throttling).
+function loopCheck() {
+  const h = state.handle;
+  if (!h) return;
+  // prepare the next city ~4 s before the musical end …
+  if (state.loop && state.mode === 'studio' && !state.next && !state.building
+      && state.score?.meta?.bodyEnd && h.position() > state.score.meta.bodyEnd - 4) {
+    loopAdvance();
+  }
+  // … and hand over as soon as its start time has passed (audio is already
+  // sample-accurate; this only swaps UI/state)
+  if (state.next && state.next.handle.position() >= 0) {
+    state.handle = state.next.handle;
+    state.dataset = state.next.cityId;
+    state.material = state.next.material;
+    state.score = state.next.score;
+    state.next = null;
+    applyToggles();
+    updateRuleLine();
+    updateLoopStatus();
+  }
+}
+setInterval(loopCheck, 500);
+
 function tick() {
   const h = state.handle;
   if (!h) return;
+
   const pos = h.position();
   const frac = Math.max(0, Math.min(1, pos / h.duration));
   $('bar-fill').style.width = (frac * 100) + '%';
@@ -193,7 +272,7 @@ async function exportWav() {
 function encodeShare() {
   const p = new URLSearchParams();
   p.set('m', state.mode); p.set('lang', getLang());
-  if (state.mode === 'studio') p.set('s', state.styleId);
+  if (state.mode === 'studio') { p.set('s', state.styleId); if (state.loop) p.set('loop', '1'); }
   else if (state.mode === 'paleo') {
     p.set('span', state.paleo.span.join('-'));
     p.set('pt', state.paleo.tempo);
@@ -214,6 +293,7 @@ function decodeShare() {
     const m = p.get('m');
     if (m) state.mode = ['learn', 'studio', 'paleo'].includes(m) ? m : 'learn';
     if (p.get('s') && STYLES[p.get('s')]) state.styleId = p.get('s');
+    state.loop = p.get('loop') === '1';
     if (p.get('d')) state.dataset = p.get('d');
     if (p.get('y')) { const [a, b] = p.get('y').split('-').map(Number); if (a && b) { state.yearFrom = a; state.yearTo = b; } }
     if (p.get('src')) state.source = p.get('src');
@@ -481,6 +561,8 @@ function wire() {
     if (el) el.addEventListener('change', () => { state.toggles[k] = el.checked; applyToggles(); });
   }
 
+  $('tgl-loop').addEventListener('change', e => { state.loop = e.target.checked; updateLoopStatus(); });
+
   $('sel-span').addEventListener('change', e => {
     const [a, b] = e.target.value.split('-').map(Number);
     state.paleo.span = [a, b];
@@ -502,6 +584,8 @@ function refreshTexts() {
   $('btn-play').textContent = (state.handle ? '■ ' + t('stop') : '▶ ' + t('play'));
   $('btn-wav').textContent = '⬇ ' + t('download_wav');
   $('btn-share').textContent = '🔗 ' + t('share_link');
+  $('tgl-loop').checked = state.loop;
+  updateLoopStatus();
   updateRuleLine();
 }
 
@@ -516,3 +600,6 @@ async function init() {
 }
 
 init();
+
+// dev/debug hook (harmless in production)
+window.__cms = { state, loopAdvance };

@@ -331,6 +331,7 @@ export function buildClimateScore(material, styleId, opts = {}) {
     mix: st.mix,
     meta: {
       styleId, spm, lead, rows,
+      bodyEnd: lead + rows.length * spm,     // musical end (before the fx tail)
       monthNotes,
       mapRule: { lo: vLo, hi: vHi, noteLo: midiName(melLo), noteHi: midiName(melHi), scale: st.scale, source }
     }
