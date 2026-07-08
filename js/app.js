@@ -1,10 +1,10 @@
 // app.js — UI wiring: modes, controls, playback sync, experiments, sharing.
 
-import { t, setLang, getLang, applyI18n } from './i18n.js?v=202607080959';
-import { loadCityIndex, loadCity, loadGlobal, loadPaleo, buildMaterial, loadCityIndexAll, loadCityLive } from './data.js?v=202607080959';
-import { play, renderWav } from './engine.js?v=202607080959';
-import { STYLES, STYLE_ORDER, buildClimateScore, buildPaleoScore } from './score.js?v=202607080959';
-import { drawClimate, drawPaleo } from './viz.js?v=202607080959';
+import { t, setLang, getLang, applyI18n } from './i18n.js?v=202607081005';
+import { loadCityIndex, loadCity, loadGlobal, loadPaleo, buildMaterial, loadCityIndexAll, loadCityLive } from './data.js?v=202607081005';
+import { play, renderWav } from './engine.js?v=202607081005';
+import { STYLES, STYLE_ORDER, buildClimateScore, buildPaleoScore } from './score.js?v=202607081005';
+import { drawClimate, drawPaleo } from './viz.js?v=202607081005';
 
 const $ = id => document.getElementById(id);
 
@@ -518,10 +518,11 @@ function buildStudioCards() {
     const card = document.createElement('button');
     card.className = 'style-card' + (id === state.styleId ? ' active' : '');
     card.innerHTML = `
-      <span class="sc-title">${t('sty_' + id + '_t')}</span>
+      <span class="sc-head"><span class="sc-title">${t('sty_' + id + '_t')}</span><i class="sc-info" title="info">i</i></span>
       <span class="sc-desc">${t('sty_' + id + '_d')}</span>
       <span class="sc-meta">${st.bpm} bpm · ${st.years[0]}–${st.years[1]} · ${t('refs')} ${st.refs}</span>`;
-    card.addEventListener('click', async () => {
+    card.addEventListener('click', async e => {
+      if (e.target.closest('.sc-info')) { openStyleInfo(id); return; }
       state.styleId = id;
       state.dataset = st.city;
       state.yearFrom = st.years[0]; state.yearTo = st.years[1];
@@ -532,6 +533,27 @@ function buildStudioCards() {
     grid.appendChild(card);
   }
 }
+
+// ----------------------------------------------------- style info modal --
+const md = s => s.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+
+function openStyleInfo(id) {
+  const st = STYLES[id];
+  $('modal-content').innerHTML = `
+    <h2>${t('sty_' + id + '_t')}</h2>
+    <p class="modal-meta">${st.bpm} bpm · 1850–2020 · ${t('refs')} ${st.refs}</p>
+    <h3>${t('modal_map_title')}</h3>
+    <p>${md(t('sty_' + id + '_map'))}</p>
+    <h3>${t('modal_why_title')}</h3>
+    <p>${md(t('sty_' + id + '_why'))}</p>
+    <div class="modal-common">
+      <h3>${t('modal_common_title')}</h3>
+      <p>${t('sty_common')}</p>
+    </div>`;
+  $('modal').hidden = false;
+}
+
+function closeModal() { $('modal').hidden = true; }
 
 function buildExperiments() {
   const defs = [
@@ -807,11 +829,16 @@ function wire() {
   $('sel-pscale').addEventListener('change', e => { state.paleo.scaleId = e.target.value; });
   $('tgl-today').addEventListener('change', e => { state.paleo.today = e.target.checked; });
 
+  $('modal-close').addEventListener('click', closeModal);
+  $('modal').addEventListener('click', e => { if (e.target === $('modal')) closeModal(); });
+  window.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
   window.addEventListener('resize', () => redraw(state.handle ? playFracFromPos(state.handle.position()) : -1));
 }
 
 function refreshTexts() {
   applyI18n();
+  closeModal();                     // avoid stale-language modal content
   document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === getLang()));
   fillCitySelect();
   buildStudioCards();

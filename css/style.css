@@ -240,6 +240,44 @@ button.exp-card:hover, .exp-card.active { border-color: var(--tx3); }
 .paleo-slider input[type="range"] { width: 100%; accent-color: var(--red); height: 18px; }
 #paleo-periods { margin: 4px 0 10px; }
 
+/* --------------------------------------------------------- style modal --- */
+.sc-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.sc-info {
+  flex: none; width: 22px; height: 22px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid var(--line); color: var(--tx3);
+  font-family: var(--mono); font-size: 12px; font-style: normal;
+}
+.style-card:hover .sc-info { border-color: var(--tx3); color: var(--tx); }
+
+.modal {
+  position: fixed; inset: 0; z-index: 50;
+  background: rgba(6, 6, 8, 0.72); backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+.modal[hidden] { display: none; }
+.modal-box {
+  position: relative; background: var(--bg2); border: 1px solid var(--line);
+  border-radius: 14px; padding: 26px 28px; max-width: 620px; width: 100%;
+  max-height: 84vh; overflow-y: auto;
+}
+.modal-close {
+  position: absolute; top: 10px; right: 12px;
+  background: none; border: none; color: var(--tx3);
+  font-size: 22px; line-height: 1; cursor: pointer; padding: 6px;
+}
+.modal-close:hover { color: var(--tx); }
+.modal-box h2 { font-family: var(--mono); font-size: 16px; font-weight: 500; letter-spacing: 0.02em; margin-bottom: 2px; }
+.modal-meta { color: var(--tx3); font-family: var(--mono); font-size: 12px; margin-bottom: 16px; }
+.modal-box h3 {
+  font-family: var(--mono); font-size: 12px; font-weight: 500;
+  letter-spacing: 0.07em; color: var(--red); margin: 16px 0 6px;
+}
+.modal-box p { color: var(--tx2); font-size: 13.5px; line-height: 1.6; }
+.modal-box p strong, .modal-box p b { color: var(--tx); font-weight: 600; }
+.modal-common { border-top: 1px solid var(--line); margin-top: 18px; padding-top: 4px; }
+.modal-common p { color: var(--tx3); font-size: 12.5px; }
+
 /* ----------------------------------------------------------- didactic --- */
 .didactic {
   background: var(--bg2); border: 1px solid var(--line); border-left: 3px solid var(--red);

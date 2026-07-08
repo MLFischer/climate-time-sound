@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>climate · time · sound</title>
 <meta name="description" content="Hear climate data become music — a bilingual teaching tool for music, climate and time series. / Höre, wie aus Klimadaten Musik wird — ein Lehrtool für Musik, Klima und Zeitreihen.">
-<link rel="stylesheet" href="css/style.css?v=202607080959">
+<link rel="stylesheet" href="css/style.css?v=202607081005">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' fill='%230c0c0e'/><path d='M2 11 L5 8 L8 10 L11 4 L14 6' stroke='%23e6392f' fill='none' stroke-width='1.6'/></svg>">
 </head>
 <body data-mode="studio">
@@ -217,6 +217,13 @@
   <p data-i18n="footer_sources"></p>
 </footer>
 
-<script type="module" src="js/app.js?v=202607080959"></script>
+<div id="modal" class="modal" hidden>
+  <div class="modal-box" role="dialog" aria-modal="true">
+    <button id="modal-close" class="modal-close" aria-label="close">×</button>
+    <div id="modal-content"></div>
+  </div>
+</div>
+
+<script type="module" src="js/app.js?v=202607081005"></script>
 </body>
 </html>

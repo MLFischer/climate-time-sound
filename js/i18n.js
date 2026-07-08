@@ -313,6 +313,111 @@ const STR = {
     en: 'Data: HadCRUT (Met Office/CRU) · Berkeley Earth · NOAA Paleoclimate (LR04 Lisiecki & Raymo 2005, EPICA Bereiter 2015 / Jouzel 2007, Vostok Petit 1999, NGRIP, Sanbao Wang 2008, Laskar 2004, HSPDP/Chew Bahir et al.). Music & code: MIT license. Runs entirely in your browser — no data leaves your device.'
   },
 
+  // ---- style info modal ----
+  modal_map_title: { de: 'übersetzung — so entsteht dieser stil', en: 'mapping — how this style is built' },
+  modal_why_title: { de: 'warum trifft das den stil?', en: 'why does this hit the style?' },
+  modal_common_title: { de: 'grundregeln (in allen stilen gleich)', en: 'ground rules (identical in every style)' },
+  sty_common: {
+    de: 'Melodie = Monatswerte (wärmer = höher, 2 Oktaven) · Bass = 10-Jahres-Trend (steigt mit dem Klimazustand) · Fläche = Jahreszeiten · Akzente = Extreme, Rekorde, Sprünge · Dekadenwechsel = Kadenz-Anker · Klima-Varianz = Ghost-Notes & Verzierungen. Im Studio gilt: 1 Monat = eine Sechzehntel, 1 Beat = 4 Monate — 170 Jahre werden Form.',
+    en: 'Melody = monthly values (warmer = higher, 2 octaves) · bass = 10-year trend (rises with the climate state) · pad = seasons · accents = extremes, records, jumps · decade turns = cadence anchors · climate variability = ghost notes & ornaments. In the studio: 1 month = one sixteenth, 1 beat = 4 months — 170 years become form.'
+  },
+  sty_dub_map: {
+    de: 'Auf der Offbeat-Sechzehntel jedes Beats schlägt ein Moll-Akkord-Stab an, gebaut aus der Anomalie des jeweiligen Monats — in warmen Dekaden mit Septime. Er läuft in ein langes, dunkles Dub-Delay (punktierte Achtel, hohe Rückkopplung). Darunter: runder Sub-Bass auf dem Trend, fast stumme Hi-Hats, Sidechain-Pumpen auf jeder Kick.',
+    en: 'On the offbeat sixteenth of every beat a minor chord stab strikes, built from that month\'s anomaly — with a seventh in warm decades. It feeds a long, dark dub delay (dotted eighth, high feedback). Beneath: round sub bass on the trend, nearly silent hi-hats, sidechain pumping on every kick.'
+  },
+  sty_dub_why: {
+    de: 'Dub Techno (Basic Channel, Deepchord) ist definiert durch hallende Offbeat-Akkorde über tiefem, weichem Bass und viel Raum — Ereignisse verschwimmen zu Fahnen. Gemessen ist dies der dunkelste Beat-Stil der Engine (Helligkeit 0.07) mit hohem Bassanteil (0.82): genau die Basic-Channel-Signatur. Dass die Akkorde vom Klima wandern, ersetzt die Dub-typischen Mixpult-Fahrten.',
+    en: 'Dub techno (Basic Channel, Deepchord) is defined by echoing offbeat chords over deep, soft bass and lots of space — events blur into tails. Measured, this is the engine\'s darkest beat style (brightness 0.07) with heavy bass (0.82): precisely the Basic Channel signature. The chords drifting with the climate replaces the genre\'s classic mixing-desk rides.'
+  },
+  sty_hypnotic_map: {
+    de: 'Jede Monats-Sechzehntel ist ein Pluck: abwechselnd der Anomalie-Ton und seine Quinte — ein rollendes, nie endendes Pattern. Die Pentatonik hält jede Kombination konsonant, 16tel-Hats mit Akzentmuster rollen mit, der Bass setzt nur jeden zweiten Beat.',
+    en: 'Every month-sixteenth is a pluck: alternating the anomaly note and its fifth — one rolling, never-ending pattern. The pentatonic scale keeps every combination consonant, accented 16th hats roll along, the bass lands only every other beat.'
+  },
+  sty_hypnotic_why: {
+    de: 'Hypnotic/Minimal (Donato Dozzy, Plastikman) wiederholt kleinste Zellen, bis Zeitgefühl kippt — Trance durch Mikrovariation statt Wechsel. Hier liefert die Datenrate selbst das Pattern: Das Klima variiert die Zelle jeden Monat minimal, nie identisch, nie brechend. Mono-nah und fokussiert (Stereobreite 0.10), wie es der Stil verlangt.',
+    en: 'Hypnotic/minimal (Donato Dozzy, Plastikman) repeats tiny cells until the sense of time tips — trance through micro-variation instead of change. Here the data rate itself is the pattern: the climate varies the cell slightly every month, never identical, never breaking. Near-mono and focused (stereo width 0.10), exactly as the style demands.'
+  },
+  sty_driving_map: {
+    de: 'Akkord-Stabs aus der Anomalie alle zwei Beats, dazu rollende 16tel-Hats, Offbeat-Open-Hat und Claps auf 2 und 4 — die hellste Drum-Garnitur der Engine. Hitzemonate zünden zusätzliche Acid-Sechzehntel eine Oktave höher; Rekorde schicken Riser und Ride. Starkes Sidechain-Pumpen (0.45).',
+    en: 'Chord stabs from the anomaly every two beats, plus rolling 16th hats, offbeat open hat and claps on 2 and 4 — the engine\'s brightest drum kit. Hot months ignite extra acid sixteenths an octave up; records send risers and rides. Strong sidechain pumping (0.45).'
+  },
+  sty_driving_why: {
+    de: 'Driving Techno (Jeff Mills, Robert Hood) ist Vorwärtsbewegung: hell, hart, funktional. Gemessen der hellste Stil (0.17) bei mono-fokussiertem Bild — die Detroit-Ästhetik aus Reduktion und Druck. Dass die Hitze der Daten die Hi-Hats dichter macht, übersetzt Erwärmung direkt in Drive.',
+    en: 'Driving techno (Jeff Mills, Robert Hood) is forward motion: bright, hard, functional. Measured the brightest style (0.17) with a mono-focused image — the Detroit aesthetic of reduction and pressure. Heat in the data thickening the hi-hats translates warming directly into drive.'
+  },
+  sty_acid_map: {
+    de: 'Die 303-Linie: Jeder Monat ist eine Sechzehntel der Säure-Sequenz. Die zentrale Regel: **Filter-Cutoff = Anomalie** — je wärmer der Monat, desto weiter öffnet der resonante Filter. Slides verbinden Monate (häufiger bei hoher Klima-Varianz), Akzente bei Hitzemonaten und Rekorden. Phrygisch für die nötige Schärfe.',
+    en: 'The 303 line: every month is one sixteenth of the acid sequence. The central rule: **filter cutoff = anomaly** — the warmer the month, the wider the resonant filter opens. Slides connect months (more often in high climate variability), accents on hot months and records. Phrygian for the required bite.'
+  },
+  sty_acid_why: {
+    de: 'Acid (Phuture, DJ Pierre) ist durch genau ein Instrument definiert: die gleitende, resonante TB-303-Linie, deren Filter „spricht". Hier spricht buchstäblich das Klima den Filter — die Erwärmung ist als Öffnen des Klangs über 170 Jahre zu hören. Kompakter Beat, wenig Raum, alles Fokus auf der Linie: die Chicago-Formel.',
+    en: 'Acid (Phuture, DJ Pierre) is defined by exactly one instrument: the sliding, resonant TB-303 line whose filter "speaks". Here the climate literally speaks the filter — warming is audible as the sound opening up across 170 years. Compact beat, little space, all focus on the line: the Chicago formula.'
+  },
+  sty_electro_map: {
+    de: 'Synkopierte Figur statt Four-to-the-floor-Melodik: Plucks und Sub-Bass auf der 1. und 4. Sechzehntel jedes Beats (die 4. eine Oktave tiefer), Claps auf 2 und 4, knackige Hats. Datensprünge werden zu Fills, die Varianz würfelt Ghost-Hats dazwischen.',
+    en: 'Syncopated figure instead of four-to-the-floor melody: plucks and sub bass on the 1st and 4th sixteenth of each beat (the 4th an octave down), claps on 2 and 4, crisp hats. Data jumps become fills, variability rolls ghost hats in between.'
+  },
+  sty_electro_why: {
+    de: 'Electro (Drexciya, Bambaataa) lebt vom synkopierten Maschinenfunk-Bass — der Groove sitzt zwischen den Zählzeiten. Die punktierte Figur entsteht hier direkt aus dem Monatsraster (Monat 1 und 4 jedes Beats). Knackig und hell (0.16), Bass federnd statt drückend: die Electro-Balance.',
+    en: 'Electro (Drexciya, Bambaataa) lives on syncopated machine-funk bass — the groove sits between the counts. The dotted figure here emerges directly from the month grid (months 1 and 4 of each beat). Crisp and bright (0.16), bass bouncing rather than pressing: the electro balance.'
+  },
+  sty_industrial_map: {
+    de: 'Verzerrte Kick (Waveshaper), metallische Snare auf jedem zweiten Beat, Noise-Hats auf den Zwischenzählzeiten — und ein schlanker, zurückgenommener Sub, damit die Härte vorn steht. Die Anomalie schlägt alle zwei Beats als FM-Glocke an; Sprünge und Kälteeinbrüche krachen als Metall-Snares dazwischen. Phrygisch, engstes Stereobild.',
+    en: 'Distorted kick (waveshaper), metallic snare on every other beat, noise hats on the off-counts — and a lean, restrained sub so the hardness stays up front. The anomaly strikes as an FM bell every two beats; jumps and cold snaps crash in as metal snares. Phrygian, narrowest stereo image.'
+  },
+  sty_industrial_why: {
+    de: 'Birmingham-Industrial (Surgeon, Perc, Ancient Methods) ist hart, monochrom, klaustrophobisch — Klang als Material, nicht als Melodie. Gemessen das engste Stereobild der Engine (0.06) mit lauter, rauer Mitte. Dass ausgerechnet die Extreme der Klimadaten die metallischen Schläge setzen, gibt der Härte einen Grund.',
+    en: 'Birmingham industrial (Surgeon, Perc, Ancient Methods) is hard, monochrome, claustrophobic — sound as material, not melody. Measured the engine\'s narrowest stereo image (0.06) with a loud, rough midrange. That it is precisely the data\'s extremes that place the metallic hits gives the hardness its reason.'
+  },
+  sty_idm_map: {
+    de: 'Der Beat ist zerlegt: Snare-Positionen werden (seed-deterministisch) um die Zählzeiten gewürfelt, Hats erscheinen probabilistisch, Plucks auf dem Achtelraster springen zufällig um eine Oktave. Datensprünge lösen Hat-Rolls aus; die Ghost-Dichte folgt der Klima-Varianz. Dorisch, viel Delay.',
+    en: 'The beat is dismantled: snare positions are rolled (seed-deterministically) around the counts, hats appear probabilistically, plucks on the eighth grid jump a random octave. Data jumps trigger hat rolls; ghost density follows climate variability. Dorian, plenty of delay.'
+  },
+  sty_idm_why: {
+    de: 'IDM/Breakbeat (Aphex Twin, Autechre) bricht den Beat und erhebt kontrollierten Zufall zur Methode. Der Trick hier: Der Zufall ist ein deterministischer Seed — dasselbe Stück bei jedem Abspielen, wie eine auskomponierte Partitur, die nur chaotisch klingt. Je unruhiger das Klima, desto zerklüfteter der Groove.',
+    en: 'IDM/breakbeat (Aphex Twin, Autechre) breaks the beat and elevates controlled randomness to a method. The trick here: the randomness is a deterministic seed — the same piece on every play, like a through-composed score that merely sounds chaotic. The more restless the climate, the more fractured the groove.'
+  },
+  sty_downtempo_map: {
+    de: 'Ein warmer Pluck pro Beat aus dem Mittel seiner vier Monate — die Mittelung glättet das Rauschen zu singbaren Linien. Alle vier Beats eine Akkordfläche aus dem Trend, Shaker-Sechzehntel, weiche Claps, dezenter Swing. In warmen Dekaden werden die Akkorde voller.',
+    en: 'One warm pluck per beat from the mean of its four months — the averaging smooths noise into singable lines. Every four beats a chord pad from the trend, shaker sixteenths, soft claps, gentle swing. In warm decades the chords grow fuller.'
+  },
+  sty_downtempo_why: {
+    de: 'Melodic Downtempo (Bonobo, Four Tet, Ben Böhmer) ist warm, melodisch und entspannt treibend — Musik, die trägt statt drängt. Gemessen ausgewogen: viel Bass (0.85), sanfte Höhen, mittleres Tempo. Der freundlichste Einstieg ins Projekt — deshalb übernimmt die Monats-Mittelung hier die Rolle des Songwritings.',
+    en: 'Melodic downtempo (Bonobo, Four Tet, Ben Böhmer) is warm, melodic and gently driving — music that carries rather than pushes. Measured balanced: rich bass (0.85), soft highs, mid tempo. The friendliest entry into the project — which is why month-averaging takes on the songwriting here.'
+  },
+  sty_triphop_map: {
+    de: 'Schwerer, geswingter Beat (Swing 0.13): Kick mit gewürfelten Ghost-Schlägen, Snare auf 2 und 4, sehr lauter Sub auf dem Trend. Durchgehendes Vinyl-Knistern als Textur. Die Melodie setzt nur alle zwei Beats — ein dunkler Pluck aus dem Monatsmittel, in Moll.',
+    en: 'Heavy, swung beat (swing 0.13): kick with rolled ghost hits, snare on 2 and 4, very loud sub on the trend. Continuous vinyl crackle as texture. The melody lands only every two beats — a dark pluck from the month mean, in minor.'
+  },
+  sty_triphop_why: {
+    de: 'Trip-Hop (Massive Attack, Portishead) ist langsam, schwer und nokturn — Bristol bei Regen. Gemessen der Sub-lastigste Stil der Engine (Bass 0.89); Swing und Knistern liefern die Patina, die das Genre von cleanem Downtempo trennt. Die Klimakurve wird hier zur Basslast, die man körperlich spürt.',
+    en: 'Trip-hop (Massive Attack, Portishead) is slow, heavy and nocturnal — Bristol in the rain. Measured the engine\'s most sub-heavy style (bass 0.89); swing and crackle provide the patina that separates the genre from clean downtempo. The climate curve becomes bass weight you feel physically.'
+  },
+  sty_neoclassic_map: {
+    de: 'Kein Beat. Ein Klavierton pro Notengruppe (aus dem Monatsmittel), in warmen Dekaden eine zweite Stimme in der Quinte. Streicherflächen aus dem Jahreszeitenprofil, ein Sub-Pedalton zu jedem Jahresbeginn, Glocken bei Rekorden, Dekaden-Kadenzen — alles in großem Hall.',
+    en: 'No beat. One piano note per group (from the month mean), a second voice at the fifth in warm decades. String pads from the seasonal profile, a sub pedal tone at every year\'s start, bells on records, decade cadences — all in generous reverb.'
+  },
+  sty_neoclassic_why: {
+    de: 'Neoklassik (Nils Frahm, Max Richter) ist intime, reduzierte Klaviermusik mit Raum — Emotion aus Zurückhaltung. Gemessen der leiseste und intimste Stil (geringster Bassanteil 0.55, kleine Dynamik). Die Daten werden Kammermusik: Man hört die Erwärmung als langsames Aufhellen einer Klavierstimme.',
+    en: 'Neoclassical (Nils Frahm, Max Richter) is intimate, reduced piano music with space — emotion through restraint. Measured the quietest, most intimate style (lowest bass share 0.55, small dynamics). The data becomes chamber music: you hear warming as the slow brightening of a piano voice.'
+  },
+  sty_ambient_map: {
+    de: 'Kein Takt: überlappende Flächen aus Monatsgruppen, im Stereofeld verteilt. Schimmer-Glocken erscheinen umso häufiger, je höher der Klimazustand; Rekorde setzen helle Glockentöne, Dekaden ferne Anker. Sehr langer Hall (5,5 s), langsames Delay — die Zeit verliert ihre Kanten.',
+    en: 'No meter: overlapping pads from month groups, spread across the stereo field. Shimmer bells appear more often as the climate state rises; records place bright bell tones, decades distant anchors. Very long reverb (5.5 s), slow delay — time loses its edges.'
+  },
+  sty_ambient_why: {
+    de: 'Ambient (Eno, Stars of the Lid, GAS) ist Klangfeld statt Ereignis — Musik als Wetter. Gemessen das breiteste Stereobild der Engine (0.32) und beatlos, wie es das Genre verlangt. Der Wandel erscheint nicht als Rhythmus, sondern als Licht: Die Fläche wird über 170 Jahre unmerklich heller und dichter.',
+    en: 'Ambient (Eno, Stars of the Lid, GAS) is a sound field instead of events — music as weather. Measured the engine\'s widest stereo image (0.32) and beatless, as the genre demands. Change appears not as rhythm but as light: the field grows imperceptibly brighter and denser across 170 years.'
+  },
+  sty_drone_map: {
+    de: 'Lange, tiefe Drone-Schichten aus Monatsgruppen, phrygisch, eine Oktave unter allem anderen. Die zentrale Regel: **Helligkeit der Drone = Klimazustand** — der Filter öffnet sich über 170 Jahre kaum merklich, aber unaufhaltsam. Kälteeinbrüche reißen Sub-Abgründe, Dekaden schlagen als ferne Glocken an, Rekorde schimmern. Längster Hall der Engine (6,5 s).',
+    en: 'Long, deep drone layers from month groups, phrygian, an octave below everything else. The central rule: **drone brightness = climate state** — the filter opens across 170 years barely perceptibly, but unstoppably. Cold snaps tear sub chasms, decades strike as distant bells, records shimmer. The engine\'s longest reverb (6.5 s).'
+  },
+  sty_drone_why: {
+    de: 'Drone (Tim Hecker, Thomas Köner, Basinski) behandelt Klang als geologische Kraft: Veränderung ist Textur, nicht Melodie. Gemessen der dunkelste Stil überhaupt (Helligkeit 0.03), breit und schwer. Genau deshalb ist er das Eröffnungsstück: Man hört nicht Ereignisse, sondern den Zustand selbst — und wie er sich unumkehrbar verschiebt.',
+    en: 'Drone (Tim Hecker, Thomas Köner, Basinski) treats sound as a geological force: change is texture, not melody. Measured the darkest style of all (brightness 0.03), wide and heavy. That is exactly why it is the opening piece: you hear not events but the state itself — and how it shifts irreversibly.'
+  },
+
   // ---- style cards (title/desc per style) ----
   sty_dub_t: { de: 'dub techno · Berlin', en: 'dub techno · Berlin' },
   sty_dub_d: { de: 'tief, dunkel, hallende akkorde — der trend als sub-bass', en: 'deep, dark, echoing chords — the trend as sub bass' },
