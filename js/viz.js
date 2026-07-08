@@ -10,8 +10,13 @@ const CO = {
 export function setupCanvas(canvas) {
   const dpr = window.devicePixelRatio || 1;
   const rect = canvas.getBoundingClientRect();
-  canvas.width = Math.max(300, rect.width * dpr);
-  canvas.height = Math.max(150, rect.height * dpr);
+  const W = Math.max(300, Math.round(rect.width * dpr));
+  const H = Math.max(150, Math.round(rect.height * dpr));
+  // resizing resets (and reallocates) the canvas — only do it when needed,
+  // otherwise redraws at 60 fps stutter
+  if (canvas.width !== W || canvas.height !== H) {
+    canvas.width = W; canvas.height = H;
+  }
   const g = canvas.getContext('2d');
   g.setTransform(dpr, 0, 0, dpr, 0, 0);
   return { g, w: rect.width, h: rect.height };
@@ -46,13 +51,15 @@ export function drawClimate(canvas, material, playFrac = -1, opts = {}) {
   const lo = Math.min(stats.lo, stats.trendLo) - 0.3;
   const hi = Math.max(stats.hi, stats.trendHi) + 0.3;
 
-  // visible index window
+  // visible index window — fractional, so the view glides instead of
+  // jumping in whole-month steps
   const pi = playFrac >= 0 ? playFrac * (n - 1) : -1;
   let i0 = 0, i1 = n - 1;
   if (useWindow && pi >= 0) {
-    i0 = Math.round(Math.max(0, Math.min(n - viewMonths, pi - viewMonths * 0.5)));
+    i0 = Math.max(0, Math.min(n - viewMonths, pi - viewMonths * 0.5));
     i1 = Math.min(n - 1, i0 + viewMonths - 1);
   }
+  const a = Math.max(0, Math.floor(i0)), b = Math.min(n - 1, Math.ceil(i1));
 
   const X = i => padL + ((i - i0) / Math.max(1, i1 - i0)) * iw;
   const Y = v => padT + (1 - (v - lo) / (hi - lo)) * ih;
@@ -96,12 +103,12 @@ export function drawClimate(canvas, material, playFrac = -1, opts = {}) {
   }
 
   // year ticks within the window
-  const y0 = rows[i0].year, y1 = rows[i1].year;
+  const y0 = rows[a].year, y1 = rows[b].year;
   const span = Math.max(1, y1 - y0);
   const yearStepC = span > 90 ? 20 : span > 45 ? 10 : 5;
   g.fillStyle = CO.text; g.font = '10px ui-monospace, monospace';
   for (let yy = Math.ceil(y0 / yearStepC) * yearStepC; yy <= y1; yy += yearStepC) {
-    for (let i = i0; i <= i1; i++) {
+    for (let i = a; i <= b; i++) {
       if (rows[i].year === yy && rows[i].month === 1) {
         const x = X(i);
         if (x > padL + 26 && x < w - padR - 30) g.fillText(String(yy), x - 12, h - 8);
@@ -116,20 +123,24 @@ export function drawClimate(canvas, material, playFrac = -1, opts = {}) {
     g.fillText(String(y1), w - padR - 26, h - 8);
   }
 
-  // monthly anomaly (thin) + trend (red) within the window
+  // series + markers, clipped to the plot area (fractional edges spill a bit)
+  g.save();
+  g.beginPath(); g.rect(padL - 1, padT - 2, iw + 3, ih + 4); g.clip();
+
   const seg = [];
-  for (let i = i0; i <= i1; i++) seg.push([X(i), Y(rows[i].anomaly)]);
+  for (let i = a; i <= b; i++) seg.push([X(i), Y(rows[i].anomaly)]);
   line(g, seg, CO.monthly, 1);
   const tseg = [];
-  for (let i = i0; i <= i1; i++) tseg.push([X(i), Y(rows[i].trend)]);
+  for (let i = a; i <= b; i++) tseg.push([X(i), Y(rows[i].trend)]);
   line(g, tseg, CO.trend, 2.2);
 
   // extremes
-  for (let i = i0; i <= i1; i++) {
+  for (let i = a; i <= b; i++) {
     const r = rows[i];
     if (r.record) { g.fillStyle = CO.hot; g.beginPath(); g.arc(X(i), Y(r.anomaly), 2.6, 0, 7); g.fill(); }
     else if (r.cold) { g.fillStyle = CO.cold; g.beginPath(); g.arc(X(i), Y(r.anomaly), 2, 0, 7); g.fill(); }
   }
+  g.restore();
 
   // inline series labels (identity never by color alone)
   if (opts.labels) {

@@ -1,10 +1,10 @@
 // app.js — UI wiring: modes, controls, playback sync, experiments, sharing.
 
-import { t, setLang, getLang, applyI18n } from './i18n.js?v=202607071625';
-import { loadCityIndex, loadCity, loadGlobal, loadPaleo, buildMaterial, loadCityIndexAll, loadCityLive } from './data.js?v=202607071625';
-import { play, renderWav } from './engine.js?v=202607071625';
-import { STYLES, STYLE_ORDER, buildClimateScore, buildPaleoScore } from './score.js?v=202607071625';
-import { drawClimate, drawPaleo } from './viz.js?v=202607071625';
+import { t, setLang, getLang, applyI18n } from './i18n.js?v=202607080951';
+import { loadCityIndex, loadCity, loadGlobal, loadPaleo, buildMaterial, loadCityIndexAll, loadCityLive } from './data.js?v=202607080951';
+import { play, renderWav } from './engine.js?v=202607080951';
+import { STYLES, STYLE_ORDER, buildClimateScore, buildPaleoScore } from './score.js?v=202607080951';
+import { drawClimate, drawPaleo } from './viz.js?v=202607080951';
 
 const $ = id => document.getElementById(id);
 
@@ -233,10 +233,12 @@ function updateUI(pos) {
 // Loop control runs on a timer, not on requestAnimationFrame: rAF pauses in
 // background tabs, but the endless loop must keep chaining while the tab is
 // hidden (audio playback exempts the page from heavy timer throttling).
+// The timer only paints the UI when rAF is actually stalled — double-drawing
+// at mixed cadence makes the scrolling plot judder.
 function loopCheck() {
   const h = state.handle;
   if (!h) return;
-  updateUI(h.position());
+  if (performance.now() - lastFrame > 600) updateUI(h.position());
   // prepare the next city ~4 s before the musical end …
   if (state.loop && state.mode === 'studio' && !state.next && !state.building
       && state.score?.meta?.bodyEnd && h.position() > state.score.meta.bodyEnd - 4) {
@@ -257,9 +259,11 @@ function loopCheck() {
 }
 setInterval(loopCheck, 500);
 
+let lastFrame = 0;
 function tick() {
   const h = state.handle;
   if (!h) return;
+  lastFrame = performance.now();
   updateUI(h.position());
   requestAnimationFrame(tick);
 }
