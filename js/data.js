@@ -116,6 +116,21 @@ export function buildMaterial(raw, yearFrom, yearTo) {
   const nLo = Math.min(...normals), nHi = Math.max(...normals);
   const seasonNorm = months.map(m => nHi > nLo ? (normals[m - 1] - nLo) / (nHi - nLo) : 0.5);
 
+  // decadal variability: rolling std of the anomaly, normalised 0..1 —
+  // drives rhythmic complexity (ghost notes, fills, ornaments) in the score
+  const half = 60;
+  const vstd = anomaly.map((_, i) => {
+    let s = 0, s2 = 0, c = 0;
+    for (let j = Math.max(0, i - half); j <= Math.min(anomaly.length - 1, i + half); j++) {
+      const v = anomaly[j];
+      if (Number.isFinite(v)) { s += v; s2 += v * v; c++; }
+    }
+    if (c < 12) return NaN;
+    const m = s / c;
+    return Math.sqrt(Math.max(0, s2 / c - m * m));
+  });
+  const vsLo = quantile(vstd, 0.05), vsHi = quantile(vstd, 0.95);
+
   const m0 = mean(anomaly);
   const sd = Math.sqrt(mean(anomaly.map(a => (a - m0) * (a - m0)))) || 1;
   const q96 = quantile(anomaly, 0.96);
@@ -144,7 +159,9 @@ export function buildMaterial(raw, yearFrom, yearTo) {
     record: a >= q96,
     cold: a < m0 - 1.2 * sd,
     jump: k > 0 && jumps[k] >= jq96,
-    runStart: runStart[k]
+    runStart: runStart[k],
+    variab: Number.isFinite(vstd[k]) && vsHi > vsLo
+      ? Math.max(0, Math.min(1, (vstd[k] - vsLo) / (vsHi - vsLo))) : 0.5
   }));
 
   return {

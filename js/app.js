@@ -1,10 +1,10 @@
 // app.js — UI wiring: modes, controls, playback sync, experiments, sharing.
 
-import { t, setLang, getLang, applyI18n } from './i18n.js?v=202607080951';
-import { loadCityIndex, loadCity, loadGlobal, loadPaleo, buildMaterial, loadCityIndexAll, loadCityLive } from './data.js?v=202607080951';
-import { play, renderWav } from './engine.js?v=202607080951';
-import { STYLES, STYLE_ORDER, buildClimateScore, buildPaleoScore } from './score.js?v=202607080951';
-import { drawClimate, drawPaleo } from './viz.js?v=202607080951';
+import { t, setLang, getLang, applyI18n } from './i18n.js?v=202607080959';
+import { loadCityIndex, loadCity, loadGlobal, loadPaleo, buildMaterial, loadCityIndexAll, loadCityLive } from './data.js?v=202607080959';
+import { play, renderWav } from './engine.js?v=202607080959';
+import { STYLES, STYLE_ORDER, buildClimateScore, buildPaleoScore } from './score.js?v=202607080959';
+import { drawClimate, drawPaleo } from './viz.js?v=202607080959';
 
 const $ = id => document.getElementById(id);
 
@@ -13,7 +13,7 @@ const state = {
   dataset: 'berlin', yearFrom: 1970, yearTo: 2020,
   source: 'anomaly', world: 'warm', tempo: 'mid',
   toggles: { melody: true, bass: true, pad: true, extremes: true, perc: true },
-  styleId: 'downtempo',
+  styleId: 'drone',               // dark drone · Oslo is the opening piece
   studioLen: 'normal', seeking: false,
   paleo: {
     span: [0, 800], tempo: 'mid', constellation: 'iceages',

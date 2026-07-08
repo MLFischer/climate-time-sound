@@ -115,8 +115,8 @@ export const STYLES = {
   }
 };
 
-export const STYLE_ORDER = ['downtempo', 'dub', 'hypnotic', 'driving', 'acid', 'electro',
-  'industrial', 'idm', 'triphop', 'neoclassic', 'ambient', 'drone'];
+export const STYLE_ORDER = ['drone', 'downtempo', 'dub', 'hypnotic', 'driving', 'acid',
+  'electro', 'industrial', 'idm', 'triphop', 'neoclassic', 'ambient'];
 
 // seconds per month: one month = one beat (beat styles); ambient/drone slower
 function styleSpm(id) {
@@ -187,8 +187,16 @@ export function buildClimateScore(material, styleId, opts = {}) {
     const f = midiFreq(midi);
     const bright = 0.2 + 0.6 * n01;
     const velMel = 0.5 + 0.4 * Math.abs(r.anomaly - stats.mean) / (2 * stats.sd + 0.001);
-    const trendMidi = mapToMidi(r.trend, stats.trendLo, stats.trendHi, root - 12, root - 2, root, scale);
+    // climate-state macro: the trend, variance-expanded (movements around the
+    // middle are exaggerated) — drives register, loudness, harmony, density
+    const csRaw = (r.trend - stats.trendLo) / Math.max(1e-6, stats.trendHi - stats.trendLo);
+    const cs = clamp01(0.5 + (csRaw - 0.5) * 1.6);
+    // decadal variability of the anomaly — drives rhythmic complexity
+    const va = r.variab ?? 0.5;
+    // wider trend register than before: the bass audibly climbs with the state
+    const trendMidi = mapToMidi(r.trend, stats.trendLo, stats.trendHi, root - 14, root + 4, root, scale);
     const fBass = midiFreq(trendMidi);
+    const chordSize = cs > 0.62 ? 4 : 3;   // warm decades get sevenths
     const degree = Math.round(n01 * 5);
     const yearStart = r.month === 1;
 
@@ -198,19 +206,19 @@ export function buildClimateScore(material, styleId, opts = {}) {
       const sIB = i % beatEvery;                    // slot within the beat
       switch (styleId) {
         case 'dub':
-          if (sIB === 2) ev.push({ t: T(i, 0), dur: bDur * 0.7, track: 'melody', voice: 'stab', fs: scaleChord(root, scale, degree, root + 12).map(midiFreq), vel: 0.24 * vj(), bright: 0.15 + 0.45 * n01, send: { delay: 0.55, verb: 0.25 } });
+          if (sIB === 2) ev.push({ t: T(i, 0), dur: bDur * 0.7, track: 'melody', voice: 'stab', fs: scaleChord(root, scale, degree, root + 12, chordSize).map(midiFreq), vel: 0.24 * vj(), bright: 0.15 + 0.45 * n01, send: { delay: 0.55, verb: 0.25 } });
           break;
         case 'hypnotic':
           ev.push({ t: T(i, 0), dur: spm * 1.6, track: 'melody', voice: 'pluck', f: i % 2 ? midiFreq(snapToScale(midi + 7, root, scale)) : f, vel: (i % 2 ? 0.2 : 0.3 * velMel) * vj(), bright, send: { delay: 0.4, verb: 0.1 } });
           break;
         case 'driving':
-          if (i % (2 * beatEvery) === 0) ev.push({ t: T(i, 0), dur: bDur * 0.55, track: 'melody', voice: 'stab', fs: scaleChord(root, scale, degree, root + 24).map(midiFreq), vel: 0.22 * vj(), bright: 0.5 + 0.5 * n01, send: { delay: 0.3, verb: 0.15 } });
+          if (i % (2 * beatEvery) === 0) ev.push({ t: T(i, 0), dur: bDur * 0.55, track: 'melody', voice: 'stab', fs: scaleChord(root, scale, degree, root + 24, chordSize).map(midiFreq), vel: 0.22 * vj(), bright: 0.5 + 0.5 * n01, send: { delay: 0.3, verb: 0.15 } });
           if (r.hot) ev.push({ t: T(i, 0), dur: spm * 0.8, track: 'melody', voice: 'acid', f: f * 2, vel: 0.15, bright: n01, send: { delay: 0.35 } });
           break;
         case 'acid': {
           if (rand() < 0.15) break;
           const prev = i > 0 ? midiFreq(mapToMidi(val[i - 1], vLo, vHi, melLo, melHi, root, scale)) : null;
-          ev.push({ t: T(i, 0), dur: spm * 0.95, track: 'melody', voice: 'acid', f, slide: prev && Math.abs(prev - f) > 1 && rand() < 0.5 ? prev : null, accent: r.hot || r.record, vel: 0.32 * vj(), bright: n01, send: { delay: 0.3, verb: 0.08 } });
+          ev.push({ t: T(i, 0), dur: spm * 0.95, track: 'melody', voice: 'acid', f, slide: prev && Math.abs(prev - f) > 1 && rand() < 0.35 + 0.4 * va ? prev : null, accent: r.hot || r.record || rand() < 0.25 * va, vel: 0.32 * vj(), bright: n01, send: { delay: 0.3, verb: 0.08 } });
           break;
         }
         case 'electro':
@@ -240,14 +248,14 @@ export function buildClimateScore(material, styleId, opts = {}) {
       }
     } else switch (styleId) {
       case 'dub':
-        ev.push({ t: T(i, 2) + hum(), dur: spm * 0.7, track: 'melody', voice: 'stab', fs: scaleChord(root, scale, degree, root + 12).map(midiFreq), vel: 0.24 * vj(), bright: 0.15 + 0.45 * n01, send: { delay: 0.55, verb: 0.25 } });
+        ev.push({ t: T(i, 2) + hum(), dur: spm * 0.7, track: 'melody', voice: 'stab', fs: scaleChord(root, scale, degree, root + 12, chordSize).map(midiFreq), vel: 0.24 * vj(), bright: 0.15 + 0.45 * n01, send: { delay: 0.55, verb: 0.25 } });
         break;
       case 'hypnotic':
         ev.push({ t: T(i, 0) + hum(), dur: spm * 0.4, track: 'melody', voice: 'pluck', f, vel: 0.3 * velMel * vj(), bright, send: { delay: 0.4, verb: 0.12 } });
         ev.push({ t: T(i, 2) + hum(), dur: spm * 0.3, track: 'melody', voice: 'pluck', f: midiFreq(snapToScale(midi + 7, root, scale)), vel: 0.2 * vj(), bright: bright * 0.8, send: { delay: 0.45, verb: 0.1 } });
         break;
       case 'driving':
-        if (i % 2 === 0) ev.push({ t: T(i, 0), dur: spm * 0.55, track: 'melody', voice: 'stab', fs: scaleChord(root, scale, degree, root + 24).map(midiFreq), vel: 0.22 * vj(), bright: 0.5 + 0.5 * n01, send: { delay: 0.3, verb: 0.15 } });
+        if (i % 2 === 0) ev.push({ t: T(i, 0), dur: spm * 0.55, track: 'melody', voice: 'stab', fs: scaleChord(root, scale, degree, root + 24, chordSize).map(midiFreq), vel: 0.22 * vj(), bright: 0.5 + 0.5 * n01, send: { delay: 0.3, verb: 0.15 } });
         if (r.hot) for (const s of [1, 3]) ev.push({ t: T(i, s), dur: spm * 0.2, track: 'melody', voice: 'acid', f: f * 2, vel: 0.16, bright: n01, send: { delay: 0.35 } });
         break;
       case 'acid': {
@@ -255,7 +263,7 @@ export function buildClimateScore(material, styleId, opts = {}) {
         const pattern = [0, 2, 3];
         for (const s of pattern) {
           if (rand() < 0.18) continue;
-          const acc = r.hot || (s === 0 && r.record);
+          const acc = r.hot || (s === 0 && r.record) || rand() < 0.25 * va;
           const prev = i > 0 ? midiFreq(mapToMidi(val[i - 1], vLo, vHi, melLo, melHi, root, scale)) : null;
           ev.push({ t: T(i, s), dur: spm * 0.24, track: 'melody', voice: 'acid', f, slide: s === 0 && prev && Math.abs(prev - f) > 1 ? prev : null, accent: acc, vel: 0.32 * vj(), bright: n01, send: { delay: 0.3, verb: 0.08 } });
         }
@@ -282,20 +290,27 @@ export function buildClimateScore(material, styleId, opts = {}) {
         if (i % melEvery === 0) {
           const gm = melEvery > 1 ? mapToMidi(groupVal(i, melEvery), vLo, vHi, melLo, melHi, root, scale) : midi;
           ev.push({ t: T(i, 0) + hum() * 2, dur: Math.max(1.2, spm * melEvery * 1.6), track: 'melody', voice: 'piano', f: midiFreq(gm), vel: 0.34 * velMel * vj(), send: { verb: 0.4 } });
+          if (cs > 0.5 && rand() < 0.45) ev.push({ t: T(i, 0) + melEvery * spm * 0.5, dur: Math.max(0.9, spm * melEvery), track: 'melody', voice: 'piano', f: midiFreq(snapToScale(gm + 7, root, scale)), vel: 0.16 * vj(), send: { verb: 0.4 } });
         }
         break;
       case 'ambient':
         if (i % melEvery === 0) {
           const gm = melEvery > 1 ? mapToMidi(groupVal(i, melEvery), vLo, vHi, melLo, melHi, root, scale) : midi;
           ev.push({ t: T(i, 0), dur: spm * melEvery * 3, track: 'melody', voice: 'pad', f: midiFreq(gm), vel: 0.16 * vj(), bright: 0.25 + 0.35 * n01, pan: (rand() - 0.5) * 0.8, send: { verb: 0.5, delay: 0.2 } });
+          if (rand() < 0.05 + 0.2 * cs) ev.push({ t: T(i, 0) + rand() * spm * melEvery, dur: 2.5, track: 'melody', voice: 'bell', f: midiFreq(snapToScale(gm + 24, root, scale)), vel: 0.08, pan: rand() - 0.5, send: { verb: 0.6, delay: 0.3 } });
         }
         break;
       case 'drone':
         if (i % (2 * melEvery) === 0) {
           const gm = melEvery > 1 ? mapToMidi(groupVal(i, 2 * melEvery), vLo, vHi, melLo, melHi, root, scale) : midi;
-          ev.push({ t: T(i, 0), dur: spm * melEvery * 2.6, track: 'melody', voice: 'drone', f: midiFreq(gm) / 2, vel: 0.2 * vj(), bright: 0.15 + 0.3 * n01, send: { verb: 0.5 } });
+          ev.push({ t: T(i, 0), dur: spm * melEvery * 2.6, track: 'melody', voice: 'drone', f: midiFreq(gm) / 2, vel: 0.2 * vj() * (0.85 + 0.3 * cs), bright: 0.1 + 0.45 * cs, send: { verb: 0.5 } });
         }
         break;
+    }
+
+    // ornament: a high grace note when decadal variability is high
+    if (va > 0.55 && rand() < 0.18 && ['hypnotic', 'downtempo', 'idm', 'electro', 'triphop'].includes(styleId)) {
+      ev.push({ t: T(i, 0) + (gridMode ? spm * 0.5 : spm * 0.4), dur: spm * (gridMode ? 0.8 : 0.25), track: 'melody', voice: 'pluck', f: f * 2, vel: 0.11, bright: 0.6, send: { delay: 0.35 } });
     }
 
     // ---------- bass = trend ----------
@@ -312,7 +327,14 @@ export function buildClimateScore(material, styleId, opts = {}) {
     } else if (onBeat) {
       // per-style sub weight: industrial lives on noise, dub/triphop on sub
       const bv = { dub: 0.34, triphop: 0.34, driving: 0.27, acid: 0.25, industrial: 0.15, idm: 0.27, downtempo: 0.26 }[styleId] ?? 0.3;
-      ev.push({ t: TB(i, 0), dur: bDur * (beatStyle ? 0.85 : 2), track: 'bass', voice: 'sub', f: fBass, vel: bv * (yearStart ? 1.25 : 1) });
+      ev.push({ t: TB(i, 0), dur: bDur * (beatStyle ? 0.85 : 2), track: 'bass', voice: 'sub', f: fBass, vel: bv * (0.8 + 0.45 * cs) * (yearStart ? 1.2 : 1) });
+    }
+
+    // decade cadence: 1860, 1870 … anchor the large-scale form
+    if (yearStart && r.year % 10 === 0) {
+      ev.push({ t: T(i, 0), dur: Math.max(1.4, bDur * 2.2), track: 'bass', voice: 'sub', f: midiFreq(Math.max(26, trendMidi - 12)), vel: 0.3, send: { verb: 0.25 } });
+      if (beatStyle) for (const s2 of [1, 2, 3]) ev.push({ t: T(i, 0) + s2 * bDur / 4, dur: 0.2, track: 'perc', voice: 'hat', vel: 0.05 + 0.045 * s2, open: s2 === 3 });
+      else ev.push({ t: T(i, 0), dur: 2.5, track: 'melody', voice: 'bell', f: midiFreq(snapToScale(root + 24 + Math.round(cs * 12), root, scale)), vel: 0.1, send: { verb: 0.5 } });
     }
 
     // ---------- pad = seasonal cycle (or hemispheres for the global record) --
@@ -335,6 +357,10 @@ export function buildClimateScore(material, styleId, opts = {}) {
       const drive = styleId === 'industrial' ? 0.8 : 0;
       const kick = (s, v) => ev.push({ t: TB(i, s), dur: 0.4, track: 'perc', voice: 'kick', vel: v, punch, drive });
       const hat = (s, v, open) => ev.push({ t: TB(i, s), dur: 0.3, track: 'perc', voice: 'hat', vel: v * vj(), open });
+      // complexity: decadal variability adds ghost notes and syncopation,
+      // a hot climate state adds off-beat kicks
+      if (rand() < 0.08 + 0.35 * va) hat(rand() < 0.5 ? 1 : 3, 0.05 + 0.09 * va);
+      if (styleId !== 'dub' && styleId !== 'triphop' && rand() < 0.1 * va + (cs > 0.7 ? 0.06 : 0)) kick(2, 0.16);
       switch (styleId) {
         case 'triphop':
           kick(0, 0.5); if (gi % 2 === 1) { ev.push({ t: TB(i, 0), dur: 0.3, track: 'perc', voice: 'snare', vel: 0.3 }); }
@@ -414,7 +440,7 @@ export function buildClimateScore(material, styleId, opts = {}) {
 
 // ------------------------------------------------------------ paleo score --
 // tracks: [{dataset, series, voice, octave(2|4|6), gain}] · opts: {from,to,stepSec,root,scaleId}
-import { paleoOnGrid, quantile } from './data.js?v=202607080951';
+import { paleoOnGrid, quantile } from './data.js?v=202607080959';
 
 export function buildPaleoScore(tracks, opts = {}) {
   const from = opts.from ?? 0, to = opts.to ?? 800;

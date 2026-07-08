@@ -74,6 +74,13 @@ Deliberately simple and checkable — the rules are shown live in the app:
 4. **Accents** — record months, heat runs, jumps and cold snaps become risers,
    cymbals, fills or bells depending on style.
 5. **Time** — one month = one beat; in paleo mode one step = 1–5 millennia.
+6. **Climate state (macro)** — the variance-expanded trend drives register,
+   loudness, brightness and harmony (warm decades get richer chords): the
+   piece audibly fills up as the state rises.
+7. **Decadal variability** — the rolling spread of the anomaly drives
+   rhythmic complexity: ghost notes, syncopation, fills and ornaments.
+8. **Decade cadence** — every 1860, 1870, … sets a deep anchor tone and a
+   small fill, giving the large-scale form audible chapters.
 
 Styles change *only* tempo, timbre, rhythm patterns and effects — never the
 data or the rules. That is the central teaching point: sonification is a
