@@ -1,10 +1,10 @@
 // app.js — UI wiring: modes, controls, playback sync, experiments, sharing.
 
-import { t, setLang, getLang, applyI18n } from './i18n.js?v=202607081005';
-import { loadCityIndex, loadCity, loadGlobal, loadPaleo, buildMaterial, loadCityIndexAll, loadCityLive } from './data.js?v=202607081005';
-import { play, renderWav } from './engine.js?v=202607081005';
-import { STYLES, STYLE_ORDER, buildClimateScore, buildPaleoScore } from './score.js?v=202607081005';
-import { drawClimate, drawPaleo } from './viz.js?v=202607081005';
+import { t, setLang, getLang, applyI18n } from './i18n.js?v=202607081703';
+import { loadCityIndex, loadCity, loadGlobal, loadPaleo, buildMaterial, loadCityIndexAll, loadCityLive } from './data.js?v=202607081703';
+import { play, renderWav } from './engine.js?v=202607081703';
+import { STYLES, STYLE_ORDER, buildClimateScore, buildPaleoScore } from './score.js?v=202607081703';
+import { drawClimate, drawPaleo } from './viz.js?v=202607081703';
 
 const $ = id => document.getElementById(id);
 

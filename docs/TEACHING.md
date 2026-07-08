@@ -34,8 +34,9 @@ Lernende können eine URL als „Lösung" abgeben.
 
 ## 2 · A 45-minute lesson / Eine 45-Minuten-Stunde
 
-1. **(5′) Hook** — Studio mode, one click on *melodic downtempo · Lisbon*.
-   Ask only: „What do you hear changing?" / „Was verändert sich hörbar?"
+1. **(5′) Hook** — Studio mode opens on *dark drone · Oslo*, the full record
+   1850–2020. Press play, then use the **seek slider** to jump between the
+   1850s and the 2010s. Ask only: „What changed?" / „Was hat sich verändert?"
 2. **(10′) Rules** — Learn mode: read the live legend while a piece plays.
    Establish the three rules: warmer = higher, extremes = accents, one month =
    one beat.
@@ -47,6 +48,20 @@ Lernende können eine URL als „Lösung" abgeben.
    the learning goal, stated by the students.
 
 ## 3 · Assignments / Aufgaben
+
+- **Your home town / Deine Heimatstadt** — the worldwide search covers 3,500+
+  Berkeley Earth places (e.g. Leipzig). Load your town, compare its trend with
+  Berlin's, hand in both links.
+- **Read the style / Den Stil lesen** — open the ⓘ info box of any studio
+  card. Explain to a partner: which rule is data, which is design? Then check
+  the claim by ear.
+- **Lead or lag? (paleo)** — in *CO₂ & temperature in lockstep*, use the
+  **time-shift slider** (+20 kyr) and describe what breaks. What does that
+  say about coupling?
+- **The last tone (paleo)** — enable the **today marker** (CO₂ 424 ppm) and
+  explain to the class why the closing tone sits where it sits.
+- **Installation / Ausstellung** — endless-loop mode + epic length: design a
+  listening station (which style, why, what should visitors read next to it?).
 
 - **Find the strongest trend / Den stärksten Trend finden** — compare three
   cities of your choice (bass track only). Hand in the link of the clearest

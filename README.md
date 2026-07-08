@@ -106,30 +106,34 @@ climate-music-web/
 
 ## Measured sound structure / Gemessene Klangstruktur
 
-Following the original style analysis of the R project, the twelve styles were
-verified by rendering each score offline (Web Audio, identical engine) and
-measuring the audio: **bass** = share of low-frequency energy (<≈140 Hz),
-**bright** = high-frequency emphasis, **width** = stereo side/mid ratio.
-The styles order exactly as the genres predict:
+The twelve full-record pieces (1850–2020) were verified by rendering their
+**cold opening (1850s)** and **hot ending (2010s)** offline (Web Audio,
+identical engine) and measuring the audio: **bright** = high-frequency
+emphasis, **width** = stereo side/mid ratio. Two findings:
 
-| style | bass | bright | width | character |
-|-------|-----:|-------:|------:|-----------|
-| driving techno | 0.84 | 0.172 | 0.09 | brightest, rolling hats |
-| electro | 0.82 | 0.159 | 0.10 | crisp, syncopated |
-| hypnotic minimal | 0.84 | 0.152 | 0.10 | rolling 16ths, focused |
-| industrial | 0.84 | 0.148 | 0.06 | hard, narrowest image |
-| acid | 0.83 | 0.117 | 0.07 | resonant 303 line |
-| melodic downtempo | 0.85 | 0.080 | 0.10 | warm, balanced |
-| trip-hop | 0.89 | 0.069 | 0.10 | heaviest sub weight |
-| dub techno | 0.82 | 0.067 | 0.11 | darkest beat style |
-| breakbeat / idm | 0.86 | 0.068 | 0.09 | broken, mid-dark |
-| deep ambient | 0.66 | 0.076 | **0.32** | widest, beatless |
-| dark drone | 0.83 | **0.029** | 0.26 | darkest overall |
-| neoclassical | **0.55** | 0.075 | 0.25 | intimate, quietest |
+1. The styles order as their genres predict (electro brightest, drone darkest,
+   ambient widest, industrial/acid narrowest, neoclassical most intimate).
+2. **The dramaturgy is measurable**: brightness rises from the cold start to
+   the hot end in *every* style — the climate-state rules audibly fill the
+   pieces up.
 
-No clipping (peak ≤ 0.96), loudness consistent across styles. Reproduce in the
-browser console: render any score with `OfflineAudioContext` via
-`js/engine.js → renderWav()`.
+| style | bright 1850s → 2010s | width | character |
+|-------|:--------------------:|------:|-----------|
+| electro | 0.21 → **0.32** | 0.10 | brightest, crisp, syncopated |
+| hypnotic minimal | 0.14 → 0.29 | 0.11 | rolling 16ths, focused |
+| driving techno | 0.22 → 0.22 | 0.09 | bright throughout, relentless |
+| industrial | 0.16 → 0.21 | **0.06** | hard, narrowest image |
+| acid | 0.16 → 0.21 | 0.07 | resonant 303, filter = anomaly |
+| melodic downtempo | 0.07 → 0.19 | 0.10 | warm, balanced |
+| breakbeat / idm | 0.13 → 0.17 | 0.10 | broken, mid-dark |
+| neoclassical | 0.10 → 0.17 | 0.27 | intimate, lowest bass share |
+| ambient | 0.09 → 0.18 | **0.37** | widest, beatless |
+| dub techno | 0.07 → 0.15 | 0.11 | darkest beat style |
+| trip-hop | 0.11 → 0.15 | 0.10 | heaviest slow foundation |
+| dark drone | **0.04 → 0.08** | 0.33 | darkest overall — brightness doubles |
+
+Guaranteed clip-free: a final tanh stage caps the master at 1.0 with true-peak
+headroom (worst measured peak 0.965 across all styles and both windows).
 
 ## Data & credits / Daten & Quellen
 

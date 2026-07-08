@@ -52,14 +52,20 @@ const stopAll = (nodes, when) => nodes.forEach(n => { try { n.stop(when); } catc
 // ------------------------------------------------------------------ session -
 // Builds the mixer graph in any BaseAudioContext (live or offline).
 export function buildSession(ac, style = {}) {
-  const master = ac.createGain(); master.gain.value = 0.9;
+  const master = ac.createGain(); master.gain.value = 0.84;   // headroom for dense hot decades
   const comp = ac.createDynamicsCompressor();
   comp.threshold.value = -16; comp.knee.value = 10; comp.ratio.value = 3;
   comp.attack.value = 0.012; comp.release.value = 0.18;
   const limiter = ac.createDynamicsCompressor();
   limiter.threshold.value = -3; limiter.knee.value = 0; limiter.ratio.value = 20;
   limiter.attack.value = 0.001; limiter.release.value = 0.06;
-  master.connect(comp); comp.connect(limiter); limiter.connect(ac.destination);
+  // final soft clip: the limiter's 1 ms attack lets transients slip through —
+  // tanh saturation caps at exactly 1.0 (no oversampling: its reconstruction
+  // filter overshoots), then a touch of true-peak headroom
+  const clip = ac.createWaveShaper(); clip.curve = shaperCurve(1.15);
+  const post = ac.createGain(); post.gain.value = 0.97;
+  master.connect(comp); comp.connect(limiter); limiter.connect(clip);
+  clip.connect(post); post.connect(ac.destination);
 
   // ducked bus (pads, bass, fx returns) — kicks push it down for the pump
   const duck = ac.createGain(); duck.connect(master);
