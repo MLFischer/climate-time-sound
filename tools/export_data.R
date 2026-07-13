@@ -93,7 +93,11 @@ cities <- list(
   list(id="moscow",     label="Moscow",      country="Russia",         loc="55.45N-36.85E"),
   list(id="singapore",  label="Singapore",   country="Singapore",      loc="0.80N-103.66E"),
   list(id="jakarta",    label="Jakarta",     country="Indonesia",      loc="5.63S-106.55E"),
-  list(id="mexicocity", label="Mexico City", country="Mexico",         loc="20.09N-98.96W")
+  list(id="mexicocity", label="Mexico City", country="Mexico",         loc="20.09N-98.96W"),
+  list(id="leipzig",    label="Leipzig",     country="Germany",        loc="50.63N-11.41E"),
+  list(id="vienna",     label="Vienna",      country="Austria",        loc="49.03N-17.14E"),
+  list(id="bonn",       label="Bonn",        country="Germany",        loc="50.63N-6.34E"),
+  list(id="warsaw",     label="Warsaw",      country="Poland",         loc="52.24N-21.02E")
 )
 
 trend_url <- "https://berkeley-earth-temperature.s3.us-west-1.amazonaws.com/Local/TAVG/Text/%s-TAVG-Trend.txt"

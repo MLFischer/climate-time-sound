@@ -127,12 +127,36 @@ export function drawClimate(canvas, material, playFrac = -1, opts = {}) {
   g.save();
   g.beginPath(); g.rect(padL - 1, padT - 2, iw + 3, ih + 4); g.clip();
 
+  // data-driven form: faint verticals at section boundaries (studio classic)
+  if (opts.sectStarts) {
+    g.strokeStyle = '#26262e'; g.lineWidth = 1;
+    for (const si of opts.sectStarts) {
+      if (si < a || si > b) continue;
+      const x = X(si);
+      g.beginPath(); g.moveTo(x, padT); g.lineTo(x, h - padB); g.stroke();
+    }
+  }
+
   const seg = [];
   for (let i = a; i <= b; i++) seg.push([X(i), Y(rows[i].anomaly)]);
   line(g, seg, CO.monthly, 1);
   const tseg = [];
   for (let i = a; i <= b; i++) tseg.push([X(i), Y(rows[i].trend)]);
   line(g, tseg, CO.trend, 2.2);
+
+  // the note that actually sounds: step line (holds across grouped months)
+  if (opts.played) {
+    g.strokeStyle = 'rgba(216,216,222,0.55)'; g.lineWidth = 1.3; g.beginPath();
+    let started = false;
+    for (let i = a; i <= b; i++) {
+      const v = opts.played[i];
+      if (!Number.isFinite(v)) { started = false; continue; }
+      const y = Y(v), x0 = X(i), x1 = X(Math.min(b + 1, i + 1));
+      if (!started) { g.moveTo(x0, y); started = true; } else g.lineTo(x0, y);
+      g.lineTo(x1, y);
+    }
+    g.stroke();
+  }
 
   // extremes
   for (let i = a; i <= b; i++) {
@@ -149,6 +173,9 @@ export function drawClimate(canvas, material, playFrac = -1, opts = {}) {
     g.textAlign = 'right';
     g.fillStyle = CO.trend; g.fillText(opts.labels.trend, lx, padT + 12);
     g.fillStyle = CO.monthly; g.fillText(opts.labels.monthly, lx, padT + 24);
+    if (opts.played && opts.labels.played) {
+      g.fillStyle = '#d8d8de'; g.fillText(opts.labels.played, lx, padT + 36);
+    }
     g.textAlign = 'left';
   }
 

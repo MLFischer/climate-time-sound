@@ -74,9 +74,10 @@ export function buildSession(ac, style = {}) {
   const delayIn = ac.createGain();
   const delay = ac.createDelay(2.5); delay.delayTime.value = style.delayTime ?? 0.4;
   const fb = ac.createGain(); fb.gain.value = style.delayFb ?? 0.45;
+  const dHp = ac.createBiquadFilter(); dHp.type = 'highpass'; dHp.frequency.value = 160; // keep echoes out of the low end
   const dLp = ac.createBiquadFilter(); dLp.type = 'lowpass'; dLp.frequency.value = 2200;
   const dOut = ac.createGain(); dOut.gain.value = 0.9;
-  delayIn.connect(delay); delay.connect(dLp); dLp.connect(fb); fb.connect(delay);
+  delayIn.connect(delay); delay.connect(dHp); dHp.connect(dLp); dLp.connect(fb); fb.connect(delay);
   dLp.connect(dOut); dOut.connect(duck);
 
   // reverb

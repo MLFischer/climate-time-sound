@@ -25,12 +25,38 @@ export function snapToScale(midi, root, scale) {
 
 const clamp01 = x => Math.max(0, Math.min(1, x));
 
-function mapToMidi(v, lo, hi, midiLo, midiHi, root, scale) {
+export function mapToMidi(v, lo, hi, midiLo, midiHi, root, scale) {
   const n = hi > lo ? clamp01((v - lo) / (hi - lo)) : 0.5;
   return snapToScale(Math.round(midiLo + n * (midiHi - midiLo)), root, scale);
 }
 
-function scaleChord(root, scale, degree, midiLo, size = 3) {
+// What actually sounds, month by month: derived from the built melody events
+// (group means, octave jumps, scale snapping included), then mapped back to
+// the °C axis so the plot can show the played note as a step line.
+export function derivePlayed(events, rows, { lead, spm, melLo, melHi, vLo, vHi }) {
+  const n = rows.length;
+  const midiAt = new Array(n).fill(NaN);
+  const velAt = new Array(n).fill(-1);
+  for (const e of events) {
+    if (e.track !== 'melody') continue;
+    const f = e.f ?? (e.fs ? Math.min(...e.fs) : null);
+    if (!f) continue;
+    const i = Math.round((e.t - lead) / spm);
+    if (i < 0 || i >= n) continue;
+    if ((e.vel ?? 0) <= velAt[i]) continue;      // loudest event wins the month
+    velAt[i] = e.vel ?? 0;
+    midiAt[i] = Math.round(69 + 12 * Math.log2(f / 440));
+  }
+  // hold each note until the next one starts
+  for (let i = 1; i < n; i++) if (!Number.isFinite(midiAt[i])) midiAt[i] = midiAt[i - 1];
+  const span = Math.max(1e-6, melHi - melLo);
+  const played = midiAt.map(m => Number.isFinite(m)
+    ? vLo + Math.max(-0.2, Math.min(1.2, (m - melLo) / span)) * (vHi - vLo) : NaN);
+  const monthNotes = midiAt.map(m => Number.isFinite(m) ? midiName(m) : '—');
+  return { played, monthNotes };
+}
+
+export function scaleChord(root, scale, degree, midiLo, size = 3) {
   const notes = [];
   for (let i = 0; i < size; i++) {
     const d = degree + i * 2, oct = Math.floor(d / scale.length);
@@ -425,6 +451,9 @@ export function buildClimateScore(material, styleId, opts = {}) {
   // texture
   if (styleId === 'triphop') ev.push({ t: 0, dur: lead + rows.length * spm + 1, track: 'texture', voice: 'vinyl', vel: 0.05 });
 
+  // per-month sounding note (group means, octaves, snapping included)
+  const sounding = derivePlayed(ev, rows, { lead, spm, melLo, melHi, vLo, vHi });
+
   return {
     events: ev,
     duration: lead + rows.length * spm + 2.5,
@@ -432,7 +461,8 @@ export function buildClimateScore(material, styleId, opts = {}) {
     meta: {
       styleId, spm, lead, rows,
       bodyEnd: lead + rows.length * spm,     // musical end (before the fx tail)
-      monthNotes,
+      monthNotes: sounding.monthNotes,
+      played: sounding.played,
       mapRule: { lo: vLo, hi: vHi, noteLo: midiName(melLo), noteHi: midiName(melHi), scale: st.scale, source }
     }
   };
@@ -440,7 +470,7 @@ export function buildClimateScore(material, styleId, opts = {}) {
 
 // ------------------------------------------------------------ paleo score --
 // tracks: [{dataset, series, voice, octave(2|4|6), gain}] · opts: {from,to,stepSec,root,scaleId}
-import { paleoOnGrid, quantile } from './data.js?v=202607081703';
+import { paleoOnGrid, quantile } from './data.js?v=202607131001';
 
 export function buildPaleoScore(tracks, opts = {}) {
   const from = opts.from ?? 0, to = opts.to ?? 800;

@@ -107,7 +107,12 @@ main { max-width: 1100px; margin: 0 auto; padding: 22px 26px 40px; }
 .panel { display: none; }
 body[data-mode="learn"] .panel-learn { display: block; }
 body[data-mode="studio"] .panel-studio { display: block; }
+body[data-mode="classic"] .panel-classic { display: block; }
 body[data-mode="paleo"] .panel-paleo { display: block; }
+
+.loop-box { display: none; }
+body[data-mode="studio"] .loop-box,
+body[data-mode="classic"] .loop-box { display: block; }
 
 .signalweg { display: flex; gap: 10px; align-items: center; margin-bottom: 16px; }
 .sw {

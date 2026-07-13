@@ -9,6 +9,7 @@ const STR = {
   app_sub: { de: 'höre, wie aus Klimadaten Musik wird', en: 'hear climate data become music' },
   mode_learn: { de: 'lernen', en: 'learn' },
   mode_studio: { de: 'studio', en: 'studio' },
+  mode_classic: { de: 'classic', en: 'classic' },
   mode_paleo: { de: 'paleo', en: 'paleo' },
   play: { de: 'abspielen', en: 'play' },
   stop: { de: 'stopp', en: 'stop' },
@@ -105,6 +106,7 @@ const STR = {
   legend_rule_range: { de: '2 oktaven', en: '2 octaves' },
   viz_monthly: { de: 'monatswerte', en: 'monthly values' },
   viz_trend: { de: '10-jahres-trend', en: '10-year trend' },
+  viz_played: { de: 'gespielter ton', en: 'played note' },
 
   // ---- experiments ----
   exp_intro: {
@@ -149,6 +151,7 @@ const STR = {
   // ---- studio: transport & length ----
   seek_title: { de: 'position — ziehen zum vorspulen', en: 'position — drag to seek' },
   studio_len: { de: 'dauer', en: 'duration' },
+  len_snippet: { de: '30 s · 2000–2020', en: '30 s · 2000–2020' },
   len_normal: { de: '~4 min', en: '~4 min' },
   len_long: { de: '~8 min', en: '~8 min' },
   len_epic: { de: 'episch · ~17 min', en: 'epic · ~17 min' },
@@ -182,6 +185,77 @@ const STR = {
   },
   studio_now: { de: 'gerade geladen', en: 'now loaded' },
   refs: { de: 'im geiste von', en: 'in the spirit of' },
+
+  // ---- studio classic ----
+  classic_intro: {
+    de: 'Sechs Partituren „im Geiste von" großen Komponist:innen — jede in ihrer Stadt: Bach in Leipzig, Mozart in Wien, Beethoven in Bonn … Dieselben Daten und Grundregeln wie überall, aber die Form ist klassisch: Quantile von Klimazustand und Varianz gliedern jedes Stück in Abschnitte (solo · duo · agitato · tutti) mit Kadenzen an den Übergängen — im Plot als feine Linien sichtbar.',
+    en: 'Six scores "in the spirit of" great composers — each in their city: Bach in Leipzig, Mozart in Vienna, Beethoven in Bonn … The same data and ground rules as everywhere, but the form is classical: quantiles of climate state and variability divide every piece into sections (solo · duo · agitato · tutti) with cadences at the seams — visible as fine lines in the plot.'
+  },
+  did_classic_title: { de: 'form aus daten', en: 'form from data' },
+  did_classic_body: {
+    de: 'Klassische Musik lebt von Gliederung: Sätze, Phrasen, Kadenzen. Hier übernimmt das Klima die Rolle des Komponisten-Plans — ruhige, kalte Jahrzehnte werden Solo-Passagen, warme werden Tutti, unruhige werden Agitato. Die Namen sind Klang-Referenzen („im Geiste von"), keine Nachbildung: Es sind synthetische Stücke, deren Grammatik sich an historischen Stilen orientiert. Der Vergleich mit dem Studio zeigt die Kernidee des Projekts: gleiche Daten, andere Gestaltung.',
+    en: 'Classical music lives on structure: movements, phrases, cadences. Here the climate takes over the role of the composer\'s plan — calm, cold decades become solo passages, warm ones tutti, restless ones agitato. The names are sonic references ("in the spirit of"), not reconstructions: these are synthetic pieces whose grammar leans on historical styles. Comparing with the studio shows the project\'s core idea: same data, different design.'
+  },
+  cl_bach_t: { de: 'kanon · nach J. S. Bach · Leipzig', en: 'canon · after J. S. Bach · Leipzig' },
+  cl_bach_d: { de: 'achtel-motorik & ein kanon: das klima imitiert sich selbst', en: 'motoric eighths & a canon: the climate imitates itself' },
+  cl_bach_map: {
+    de: 'Jeder Monat ist eine Achtel der Cembalo-Linie. Die zweite Stimme ist ein **Kanon**: dieselbe Datenmelodie, acht Monate später, eine Quinte tiefer — das Klima imitiert sich selbst. Darunter ein schreitender Continuo-Bass (Grundton/Quinte im Wechsel). In Agitato-Abschnitten schieben sich Durchgangs-Sechzehntel zwischen die Töne, im Tutti tritt eine dritte Stimme in der Oktave hinzu.',
+    en: 'Every month is one eighth of the harpsichord line. The second voice is a **canon**: the same data melody, eight months later, a fifth below — the climate imitates itself. Beneath, a walking continuo bass (root/fifth alternating). In agitato sections passing sixteenths slip between the notes; in tutti a third voice joins at the octave.'
+  },
+  cl_bach_why: {
+    de: 'Bachs Sprache ist Kontrapunkt: unabhängige Stimmen, die sich streng aufeinander beziehen, über einer laufenden Motorik. Ein Kanon aus Klimadaten ist die ehrlichste Form davon — die zweite Stimme erfindet nichts, sie IST die erste, nur versetzt. Leipzig, die Stadt des Thomaskantors, liefert die Messreihe.',
+    en: 'Bach\'s language is counterpoint: independent voices in strict relation above a running motor. A canon made of climate data is its most honest form — the second voice invents nothing, it IS the first, merely shifted. Leipzig, the Thomaskantor\'s city, provides the record.'
+  },
+  cl_mozart_t: { de: 'alberti · nach W. A. Mozart · Wien', en: 'alberti · after W. A. Mozart · Vienna' },
+  cl_mozart_d: { de: 'dur, elegante phrasen, alberti-bass — anmut über den daten', en: 'major key, elegant phrases, alberti bass — grace over the data' },
+  cl_mozart_map: {
+    de: 'Als einziges Stück in **Dur**. Die Melodie spielt die Monatswerte als Klavierlinie in hoher Lage; jede achte Note bekommt einen Vorhalt (Appoggiatura), der sich auflöst — die klassische Geste der Eleganz. Die linke Hand spielt einen **Alberti-Bass** (Grundton–Quinte–Terz–Quinte) aus dem Akkord des Klimazustands. Solo-Abschnitte dünnen zur Basslinie aus, Tutti fügt Streicher hinzu.',
+    en: 'The only piece in a **major key**. The melody plays the monthly values as a high piano line; every eighth note receives an appoggiatura that resolves — the classical gesture of elegance. The left hand plays an **Alberti bass** (root–fifth–third–fifth) from the climate-state chord. Solo sections thin to a bass line, tutti adds strings.'
+  },
+  cl_mozart_why: {
+    de: 'Mozart heißt: singende Melodie über durchsichtiger Begleitung, Ordnung mit Charme. Der Alberti-Bass ist seine bekannteste Begleitfigur, der aufgelöste Vorhalt seine typischste Wendung. Dass die Daten in Dur plötzlich freundlich klingen, ist selbst eine Lektion: Die Skala ist eine Gestaltungsentscheidung, nicht die Wahrheit der Daten. Wien war seine Wahlheimat.',
+    en: 'Mozart means: a singing melody above transparent accompaniment, order with charm. The Alberti bass is his best-known figure, the resolved appoggiatura his most typical turn. That the data suddenly sounds friendly in major is itself a lesson: the scale is a design decision, not the truth of the data. Vienna was his chosen home.'
+  },
+  cl_beethoven_t: { de: 'motiv · nach L. v. Beethoven · Bonn', en: 'motif · after L. v. Beethoven · Bonn' },
+  cl_beethoven_d: { de: 'sforzato auf extremen, das motiv in tiefen oktaven', en: 'sforzato on extremes, the motif stated in low octaves' },
+  cl_beethoven_map: {
+    de: 'Hitzemonate und Rekorde schlagen als **Sforzato** an: doppelt so laut, mit Oktavverdopplung — die Extreme der Daten werden zu dramatischen Akzenten. Zu Beginn jedes Abschnitts stellt der Bass das **Motiv** vor: die Kontur der ersten vier Monate, wuchtig in tiefen Oktaven. Agitato-Abschnitte bekommen Streicher-Tremolo, Dekadenwechsel donnern als Akkord.',
+    en: 'Hot months and records strike as **sforzato**: twice as loud, with octave doubling — the data\'s extremes become dramatic accents. At the start of each section the bass states the **motif**: the contour of its first four months, weighty in low octaves. Agitato sections get string tremolo, decade turns thunder as chords.'
+  },
+  cl_beethoven_why: {
+    de: 'Beethoven ist Entwicklung aus einem Kern: Ein knappes Motiv wird behauptet, wiederholt, durchgesetzt — und Dynamik ist bei ihm Argument, nicht Schmuck. Dass hier die Daten selbst das Motiv jedes Abschnitts liefern und ihre Extreme die Sforzati setzen, überträgt genau diese Logik. Bonn ist seine Geburtsstadt.',
+    en: 'Beethoven is development from a kernel: a terse motif asserted, repeated, driven through — and dynamics are argument, not ornament. Here the data itself supplies each section\'s motif and its extremes place the sforzati, carrying over exactly that logic. Bonn is his birthplace.'
+  },
+  cl_chopin_t: { de: 'nocturne · nach F. Chopin · Warschau', en: 'nocturne · after F. Chopin · Warsaw' },
+  cl_chopin_d: { de: 'arpeggien, rubato aus der varianz, verzierungen auf rekorden', en: 'arpeggios, rubato from variability, ornaments on records' },
+  cl_chopin_map: {
+    de: 'Die linke Hand breitet alle vier Monate einen **Arpeggio-Bogen** über zwei Oktaven aus (den Akkord des Klimazustands), die rechte singt die Melodie in langen Tönen. Das **Rubato** ist datengesteuert: Je höher die dekadische Varianz, desto freier schwankt das Timing. Rekordmonate bekommen eine fünftönige Verzierungskaskade.',
+    en: 'Every four months the left hand unfolds an **arpeggio arc** across two octaves (the climate-state chord) while the right sings the melody in long tones. The **rubato** is data-driven: the higher the decadal variability, the freer the timing sways. Record months receive a five-note ornamental cascade.'
+  },
+  cl_chopin_why: {
+    de: 'Ein Chopin-Nocturne ist gesungene Nacht: weite Bassbögen, darüber eine Stimme, die sich Zeit nimmt. Rubato — das Dehnen und Raffen der Zeit — ist seine Signatur; hier bekommt es zum ersten Mal eine messbare Ursache: die Unruhe des Klimas selbst. Warschau ist die Stadt seiner Jugend.',
+    en: 'A Chopin nocturne is night, sung: wide bass arcs beneath a voice that takes its time. Rubato — stretching and gathering time — is his signature; here, for once, it has a measurable cause: the restlessness of the climate itself. Warsaw is the city of his youth.'
+  },
+  cl_satie_t: { de: 'gymnopédie · nach E. Satie · Paris', en: 'gymnopédie · after E. Satie · Paris' },
+  cl_satie_d: { de: 'schwebender dreiertakt, viel raum — die ruhigste lesart', en: 'floating triple meter, lots of space — the calmest reading' },
+  cl_satie_map: {
+    de: 'Ein schwebender Dreiertakt: Bass auf der Eins, zwei weiche Akkorde danach — das Gymnopédie-Muster. Die Melodie setzt nur alle sechs Monate einen Ton (das Halbjahres-Mittel), dorisch, ohne Eile. An Abschnittsgrenzen hält das Stück einen Atemzug lang inne. Fast nichts passiert — und genau dadurch hört man den langen Wandel.',
+    en: 'A floating triple meter: bass on one, two soft chords after — the gymnopédie pattern. The melody places a note only every six months (the half-year mean), dorian, unhurried. At section boundaries the piece pauses for a breath. Almost nothing happens — which is exactly why the long change becomes audible.'
+  },
+  cl_satie_why: {
+    de: 'Satie erfand Musik als Möbel: Wiederholung ohne Drama, Schönheit ohne Anspruch auf Aufmerksamkeit. Für eine Reihe, deren Botschaft im langsamen Driften liegt, ist das die vielleicht ehrlichste Form — nichts lenkt vom Trend ab. Paris, Montmartre, sein Revier.',
+    en: 'Satie invented furniture music: repetition without drama, beauty without demanding attention. For a series whose message lies in slow drift this may be the most honest form — nothing distracts from the trend. Paris, Montmartre, his territory.'
+  },
+  cl_glass_t: { de: 'minimal · nach Glass & Reich · New York', en: 'minimal · after Glass & Reich · New York' },
+  cl_glass_d: { de: 'additive 16tel-zellen — agitato macht aus 6 tönen 7', en: 'additive 16th cells — agitato turns 6 notes into 7' },
+  cl_glass_map: {
+    de: 'Eine Sechzehntel-Zelle aus sechs Tönen kreist über dem Akkord des Klimazustands; ihre Lage folgt dem Jahresmittel der Daten. Die zentrale Regel ist **additiv**: In Agitato-Abschnitten wächst die Zelle auf sieben Töne — der Takt kippt ins Ungerade, wie bei Glass. Hitzemonate setzen Glocken auf die Zellspitzen, Tutti legt Streicherflächen darunter.',
+    en: 'A sixteenth-note cell of six tones circles above the climate-state chord; its register follows the yearly mean of the data. The central rule is **additive**: in agitato sections the cell grows to seven notes — the meter tips into odd time, as with Glass. Hot months place bells on the cell peaks, tutti lays strings beneath.'
+  },
+  cl_glass_why: {
+    de: 'Minimal Music (Glass, Reich) baut Größe aus kleinsten Zellen und lässt Wandel als Prozess hörbar werden — genau die Erfahrung, um die es hier geht: Man bemerkt die Veränderung erst, wenn sie schon geschehen ist. Die additive Technik (6→7) ist Glass\' Markenzeichen; New York das Labor beider.',
+    en: 'Minimal music (Glass, Reich) builds scale from the smallest cells and makes change audible as process — precisely the experience at stake here: you notice the change only once it has already happened. The additive technique (6→7) is Glass\' trademark; New York the laboratory of both.'
+  },
 
   // ---- paleo ----
   paleo_intro: {

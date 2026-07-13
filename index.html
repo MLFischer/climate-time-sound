@@ -14,7 +14,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="assets/icon-192.png">
-<link rel="stylesheet" href="css/style.css?v=202607081703">
+<link rel="stylesheet" href="css/style.css?v=202607131001">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' fill='%230c0c0e'/><path d='M2 11 L5 8 L8 10 L11 4 L14 6' stroke='%23e6392f' fill='none' stroke-width='1.6'/></svg>">
 </head>
 <body data-mode="studio">
@@ -27,6 +27,7 @@
   <nav class="modes">
     <button class="mode-btn" data-mode="learn" data-i18n="mode_learn"></button>
     <button class="mode-btn active" data-mode="studio" data-i18n="mode_studio"></button>
+    <button class="mode-btn" data-mode="classic" data-i18n="mode_classic"></button>
     <button class="mode-btn" data-mode="paleo" data-i18n="mode_paleo"></button>
   </nav>
   <div class="langs">
@@ -129,26 +130,39 @@
     </div>
   </section>
 
+  <!-- shared transport extras: studio + classic -->
+  <div class="loop-box">
+    <div class="len-row">
+      <span class="len-label" data-i18n="studio_len"></span>
+      <div class="seg" id="seg-len" data-i18n-title="len_hint">
+        <button type="button" class="seg-btn" data-len="snippet" data-i18n="len_snippet"></button>
+        <button type="button" class="seg-btn" data-len="normal" data-i18n="len_normal"></button>
+        <button type="button" class="seg-btn" data-len="long" data-i18n="len_long"></button>
+        <button type="button" class="seg-btn" data-len="epic" data-i18n="len_epic"></button>
+      </div>
+    </div>
+    <label class="tgl"><input type="checkbox" id="tgl-loop"><span data-i18n="loop_label"></span></label>
+    <p class="hint" data-i18n="loop_hint"></p>
+    <p id="loop-status" class="loop-status mono"></p>
+  </div>
+
   <!-- ============================== studio ============================= -->
   <section class="panel panel-studio">
     <p class="hint wide" data-i18n="studio_intro"></p>
-    <div class="loop-box">
-      <div class="len-row">
-        <span class="len-label" data-i18n="studio_len"></span>
-        <div class="seg" id="seg-len" data-i18n-title="len_hint">
-          <button type="button" class="seg-btn" data-len="normal" data-i18n="len_normal"></button>
-          <button type="button" class="seg-btn" data-len="long" data-i18n="len_long"></button>
-          <button type="button" class="seg-btn" data-len="epic" data-i18n="len_epic"></button>
-        </div>
-      </div>
-      <label class="tgl"><input type="checkbox" id="tgl-loop"><span data-i18n="loop_label"></span></label>
-      <p class="hint" data-i18n="loop_hint"></p>
-      <p id="loop-status" class="loop-status mono"></p>
-    </div>
     <div id="style-grid" class="style-grid"></div>
     <div class="didactic">
       <h3 data-i18n="did_studio_title"></h3>
       <p data-i18n="did_studio_body"></p>
+    </div>
+  </section>
+
+  <!-- ============================== classic ============================ -->
+  <section class="panel panel-classic">
+    <p class="hint wide" data-i18n="classic_intro"></p>
+    <div id="classic-grid" class="style-grid"></div>
+    <div class="didactic">
+      <h3 data-i18n="did_classic_title"></h3>
+      <p data-i18n="did_classic_body"></p>
     </div>
   </section>
 
@@ -233,6 +247,6 @@
   </div>
 </div>
 
-<script type="module" src="js/app.js?v=202607081703"></script>
+<script type="module" src="js/app.js?v=202607131001"></script>
 </body>
 </html>

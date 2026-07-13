@@ -1,10 +1,11 @@
 // app.js — UI wiring: modes, controls, playback sync, experiments, sharing.
 
-import { t, setLang, getLang, applyI18n } from './i18n.js?v=202607081703';
-import { loadCityIndex, loadCity, loadGlobal, loadPaleo, buildMaterial, loadCityIndexAll, loadCityLive } from './data.js?v=202607081703';
-import { play, renderWav } from './engine.js?v=202607081703';
-import { STYLES, STYLE_ORDER, buildClimateScore, buildPaleoScore } from './score.js?v=202607081703';
-import { drawClimate, drawPaleo } from './viz.js?v=202607081703';
+import { t, setLang, getLang, applyI18n } from './i18n.js?v=202607131001';
+import { loadCityIndex, loadCity, loadGlobal, loadPaleo, buildMaterial, loadCityIndexAll, loadCityLive } from './data.js?v=202607131001';
+import { play, renderWav } from './engine.js?v=202607131001';
+import { STYLES, STYLE_ORDER, buildClimateScore, buildPaleoScore } from './score.js?v=202607131001';
+import { drawClimate, drawPaleo } from './viz.js?v=202607131001';
+import { CLASSICS, CLASSIC_ORDER, buildClassicScore } from './classic.js?v=202607131001';
 
 const $ = id => document.getElementById(id);
 
@@ -14,6 +15,7 @@ const state = {
   source: 'anomaly', world: 'warm', tempo: 'mid',
   toggles: { melody: true, bass: true, pad: true, extremes: true, perc: true },
   styleId: 'drone',               // dark drone · Oslo is the opening piece
+  classicId: 'bach',              // studio classic opens in Leipzig
   studioLen: 'normal', seeking: false,
   paleo: {
     span: [0, 800], tempo: 'mid', constellation: 'iceages',
@@ -34,8 +36,10 @@ const WORLD_STYLE = { quiet: 'neoclassic', warm: 'downtempo', electronic: 'drivi
 // learn-mode tempo: months per second matter more than bpm — long windows
 // need fast month rates; the score builder thins the beat automatically.
 const TEMPO_MULT = { slow: 1, mid: 0.5, fast: 0.25 };
-// studio length: stretch the full-record piece (seek slider makes long fine)
-const LEN_MULT = { normal: 1, long: 2, epic: 4 };
+// studio length: stretch the full-record piece (seek slider makes long fine);
+// 'snippet' keeps the groove but plays only the recent window (~30 s)
+const LEN_MULT = { snippet: 1, normal: 1, long: 2, epic: 4 };
+const studioWindow = () => state.studioLen === 'snippet' ? [2000, 2020] : [1850, 2020];
 
 const PALEO_IDS = ['lr04', 'epica_co2', 'epica_temp', 'vostok_co2', 'vostok_temp', 'chew_k',
   'bosumtwi', 'geob1016_sst', 'enso_pc1', 'ngrip', 'sanbao', 'geob1028_nam', 'kl15_cati',
@@ -97,9 +101,23 @@ async function buildScore() {
     state.material = null;
     return;
   }
+  if (state.mode === 'classic') {
+    const w = studioWindow();
+    state.yearFrom = w[0]; state.yearTo = w[1];
+    const raw = await loadDataset(state.dataset);
+    state.material = buildMaterial(raw, w[0], w[1]);
+    state.score = buildClassicScore(state.material, state.classicId, {
+      tempoMult: LEN_MULT[state.studioLen] ?? 1, seed: 20260706
+    });
+    return;
+  }
   const raw = await loadDataset(state.dataset);
-  state.material = buildMaterial(raw, state.yearFrom, state.yearTo);
   const styleId = state.mode === 'studio' ? state.styleId : WORLD_STYLE[state.world];
+  if (state.mode === 'studio') {
+    const w = studioWindow();
+    state.yearFrom = w[0]; state.yearTo = w[1];
+  }
+  state.material = buildMaterial(raw, state.yearFrom, state.yearTo);
   // studio always plays the full record; fullMult compresses ~170 years to a
   // ~4-minute piece (one month = one 16th note); the length choice stretches it
   const tempoMult = state.mode === 'studio'
@@ -170,7 +188,7 @@ function cityLabel(id) {
 function updateLoopStatus() {
   const el = $('loop-status');
   if (!el) return;
-  if (!state.loop || state.mode !== 'studio') { el.textContent = ''; return; }
+  if (!state.loop || (state.mode !== 'studio' && state.mode !== 'classic')) { el.textContent = ''; return; }
   el.textContent = state.handle
     ? t('loop_now', { city: cityLabel(state.dataset), next: cityLabel(nextCityId(state.dataset)) })
     : t('loop_armed');
@@ -183,11 +201,13 @@ async function loopAdvance(startAtOverride) {
   state.building = true;
   try {
     const cur = state.handle;
-    const st = STYLES[state.styleId];
     const cityId = nextCityId(state.dataset);
     const raw = await loadCity(cityId);
-    const material = buildMaterial(raw, st.years[0], st.years[1]);
-    const score = buildClimateScore(material, state.styleId, { source: 'anomaly', tempoMult: (st.fullMult ?? 1) * (LEN_MULT[state.studioLen] ?? 1), seed: 20260706 });
+    const w = studioWindow();
+    const material = buildMaterial(raw, w[0], w[1]);
+    const score = state.mode === 'classic'
+      ? buildClassicScore(material, state.classicId, { tempoMult: LEN_MULT[state.studioLen] ?? 1, seed: 20260706 })
+      : buildClimateScore(material, state.styleId, { source: 'anomaly', tempoMult: (STYLES[state.styleId].fullMult ?? 1) * (LEN_MULT[state.studioLen] ?? 1), seed: 20260706 });
     if (state.handle !== cur) return;              // stopped/changed meanwhile
     const startAt = startAtOverride ?? (cur.t0 + Math.max(0.1, state.score.meta.bodyEnd - (cur.offset || 0)));
     const handle = play(score, {
@@ -240,7 +260,7 @@ function loopCheck() {
   if (!h) return;
   if (performance.now() - lastFrame > 600) updateUI(h.position());
   // prepare the next city ~4 s before the musical end …
-  if (state.loop && state.mode === 'studio' && !state.next && !state.building
+  if (state.loop && (state.mode === 'studio' || state.mode === 'classic') && !state.next && !state.building
       && state.score?.meta?.bodyEnd && h.position() > state.score.meta.bodyEnd - 4) {
     loopAdvance();
   }
@@ -325,7 +345,9 @@ function redraw(frac) {
     }
   } else if (state.material) {
     drawClimate(canvas, state.material, frac, {
-      labels: { monthly: t('viz_monthly'), trend: t('viz_trend') }
+      played: state.score?.meta?.played,
+      sectStarts: state.score?.meta?.sectStarts,
+      labels: { monthly: t('viz_monthly'), trend: t('viz_trend'), played: t('viz_played') }
     });
   }
 }
@@ -355,8 +377,8 @@ async function exportWav() {
 function encodeShare() {
   const p = new URLSearchParams();
   p.set('m', state.mode); p.set('lang', getLang());
-  if (state.mode === 'studio') {
-    p.set('s', state.styleId);
+  if (state.mode === 'studio' || state.mode === 'classic') {
+    if (state.mode === 'classic') p.set('c', state.classicId); else p.set('s', state.styleId);
     if (state.loop) p.set('loop', '1');
     if (state.studioLen !== 'normal') p.set('len', state.studioLen);
   }
@@ -381,8 +403,9 @@ function decodeShare() {
     const p = new URLSearchParams(location.hash.slice(1));
     if (p.get('lang')) setLang(p.get('lang'));
     const m = p.get('m');
-    if (m) state.mode = ['learn', 'studio', 'paleo'].includes(m) ? m : 'learn';
+    if (m) state.mode = ['learn', 'studio', 'classic', 'paleo'].includes(m) ? m : 'studio';
     if (p.get('s') && STYLES[p.get('s')]) state.styleId = p.get('s');
+    if (p.get('c') && CLASSICS[p.get('c')]) state.classicId = p.get('c');
     state.loop = p.get('loop') === '1';
     if (p.get('len') && LEN_MULT[p.get('len')]) state.studioLen = p.get('len');
     if (p.get('d')) state.dataset = p.get('d');
@@ -432,6 +455,8 @@ async function copyShare() {
 function setMode(mode) {
   state.mode = mode;
   stopPlayback();
+  if (mode === 'studio') state.dataset = STYLES[state.styleId].city;
+  if (mode === 'classic') state.dataset = CLASSICS[state.classicId].city;
   document.body.dataset.mode = mode;
   document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
   $('legend-live').textContent = t('legend_idle');
@@ -537,20 +562,53 @@ function buildStudioCards() {
 // ----------------------------------------------------- style info modal --
 const md = s => s.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
 
-function openStyleInfo(id) {
-  const st = STYLES[id];
+function openInfoModal(title, metaLine, prefix, id) {
   $('modal-content').innerHTML = `
-    <h2>${t('sty_' + id + '_t')}</h2>
-    <p class="modal-meta">${st.bpm} bpm · 1850–2020 · ${t('refs')} ${st.refs}</p>
+    <h2>${title}</h2>
+    <p class="modal-meta">${metaLine}</p>
     <h3>${t('modal_map_title')}</h3>
-    <p>${md(t('sty_' + id + '_map'))}</p>
+    <p>${md(t(prefix + id + '_map'))}</p>
     <h3>${t('modal_why_title')}</h3>
-    <p>${md(t('sty_' + id + '_why'))}</p>
+    <p>${md(t(prefix + id + '_why'))}</p>
     <div class="modal-common">
       <h3>${t('modal_common_title')}</h3>
       <p>${t('sty_common')}</p>
     </div>`;
   $('modal').hidden = false;
+}
+
+function openStyleInfo(id) {
+  const st = STYLES[id];
+  openInfoModal(t('sty_' + id + '_t'), `${st.bpm} bpm · 1850–2020 · ${t('refs')} ${st.refs}`, 'sty_', id);
+}
+
+function openClassicInfo(id) {
+  const c = CLASSICS[id];
+  openInfoModal(t('cl_' + id + '_t'), `${c.tempoTxt} · 1850–2020 · ${t('refs')} ${c.name}`, 'cl_', id);
+}
+
+function buildClassicCards() {
+  const grid = $('classic-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  for (const id of CLASSIC_ORDER) {
+    const c = CLASSICS[id];
+    const card = document.createElement('button');
+    card.className = 'style-card' + (id === state.classicId ? ' active' : '');
+    card.innerHTML = `
+      <span class="sc-head"><span class="sc-title">${t('cl_' + id + '_t')}</span><i class="sc-info" title="info">i</i></span>
+      <span class="sc-desc">${t('cl_' + id + '_d')}</span>
+      <span class="sc-meta">${c.tempoTxt} · 1850–2020 · ${t('refs')} ${c.name}</span>`;
+    card.addEventListener('click', async e => {
+      if (e.target.closest('.sc-info')) { openClassicInfo(id); return; }
+      state.classicId = id;
+      state.dataset = c.city;
+      document.querySelectorAll('#classic-grid .style-card').forEach(x => x.classList.remove('active'));
+      card.classList.add('active');
+      await startPlayback();
+    });
+    grid.appendChild(card);
+  }
 }
 
 function closeModal() { $('modal').hidden = true; }
@@ -786,7 +844,7 @@ function wire() {
     b.addEventListener('click', () => {
       state.studioLen = b.dataset.len;
       syncLenSeg();
-      if (state.mode === 'studio' && state.handle) startPlayback();
+      if ((state.mode === 'studio' || state.mode === 'classic') && state.handle) startPlayback();
     }));
   $('btn-wav').addEventListener('click', exportWav);
   $('btn-share').addEventListener('click', copyShare);
@@ -842,6 +900,7 @@ function refreshTexts() {
   document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === getLang()));
   fillCitySelect();
   buildStudioCards();
+  buildClassicCards();
   buildExperiments();
   buildPaleoUI();
   syncLearnControls();
@@ -866,6 +925,10 @@ async function init() {
     const st = STYLES[state.styleId];
     state.dataset = st.city;
     state.yearFrom = st.years[0]; state.yearTo = st.years[1];
+  }
+  if (state.mode === 'classic') {
+    state.dataset = CLASSICS[state.classicId].city;
+    state.yearFrom = 1850; state.yearTo = 2020;
   }
   try { state.cityIndex = await loadCityIndex(); } catch (e) { console.error(e); }
   wire();
