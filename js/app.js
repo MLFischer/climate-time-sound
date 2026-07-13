@@ -1,11 +1,11 @@
 // app.js — UI wiring: modes, controls, playback sync, experiments, sharing.
 
-import { t, setLang, getLang, applyI18n } from './i18n.js?v=202607131453';
-import { loadCityIndex, loadCity, loadGlobal, loadPaleo, buildMaterial, loadCityIndexAll, loadCityLive } from './data.js?v=202607131453';
-import { play, renderWav } from './engine.js?v=202607131453';
-import { STYLES, STYLE_ORDER, buildClimateScore, buildPaleoScore } from './score.js?v=202607131453';
-import { drawClimate, drawPaleo } from './viz.js?v=202607131453';
-import { CLASSICS, CLASSIC_ORDER, buildClassicScore } from './classic.js?v=202607131453';
+import { t, setLang, getLang, applyI18n } from './i18n.js?v=202607132325';
+import { loadCityIndex, loadCity, loadGlobal, loadPaleo, buildMaterial, loadCityIndexAll, loadCityLive } from './data.js?v=202607132325';
+import { play, renderWav } from './engine.js?v=202607132325';
+import { STYLES, STYLE_ORDER, buildClimateScore, buildPaleoScore } from './score.js?v=202607132325';
+import { drawClimate, drawPaleo } from './viz.js?v=202607132325';
+import { CLASSICS, CLASSIC_ORDER, buildClassicScore } from './classic.js?v=202607132325';
 
 const $ = id => document.getElementById(id);
 
@@ -107,7 +107,7 @@ async function buildScore() {
     const raw = await loadDataset(state.dataset);
     state.material = buildMaterial(raw, w[0], w[1]);
     state.score = buildClassicScore(state.material, state.classicId, {
-      tempoMult: LEN_MULT[state.studioLen] ?? 1, seed: 20260706
+      stretch: LEN_MULT[state.studioLen] ?? 1, seed: 20260706
     });
     return;
   }
@@ -206,7 +206,7 @@ async function loopAdvance(startAtOverride) {
     const w = studioWindow();
     const material = buildMaterial(raw, w[0], w[1]);
     const score = state.mode === 'classic'
-      ? buildClassicScore(material, state.classicId, { tempoMult: LEN_MULT[state.studioLen] ?? 1, seed: 20260706 })
+      ? buildClassicScore(material, state.classicId, { stretch: LEN_MULT[state.studioLen] ?? 1, seed: 20260706 })
       : buildClimateScore(material, state.styleId, { source: 'anomaly', tempoMult: (STYLES[state.styleId].fullMult ?? 1) * (LEN_MULT[state.studioLen] ?? 1), seed: 20260706 });
     if (state.handle !== cur) return;              // stopped/changed meanwhile
     const startAt = startAtOverride ?? (cur.t0 + Math.max(0.1, state.score.meta.bodyEnd - (cur.offset || 0)));
@@ -348,6 +348,7 @@ function redraw(frac) {
     drawClimate(canvas, state.material, frac, {
       played: state.score?.meta?.played,
       sectStarts: state.score?.meta?.sectStarts,
+      segI: state.score?.meta?.segI,
       labels: { monthly: t('viz_monthly'), trend: t('viz_trend'), played: t('viz_played') }
     });
   }

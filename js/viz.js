@@ -127,6 +127,21 @@ export function drawClimate(canvas, material, playFrac = -1, opts = {}) {
   g.save();
   g.beginPath(); g.rect(padL - 1, padT - 2, iw + 3, ih + 4); g.clip();
 
+  // data-driven form, layer 1: segment intensity as a whisper of shading —
+  // the darker→lighter bands ARE the Quantil-Dramaturgie (I1…I5)
+  if (opts.segI) {
+    let runStart = a, runI = opts.segI[a];
+    const paint = (from, to, I) => {
+      if (!Number.isFinite(I) || I <= 1) return;
+      g.fillStyle = `rgba(232,232,236,${(0.012 * (I - 1)).toFixed(3)})`;
+      g.fillRect(X(from), padT, X(Math.min(b + 1, to)) - X(from), ih);
+    };
+    for (let i = a; i <= b; i++) {
+      if (opts.segI[i] !== runI) { paint(runStart, i, runI); runStart = i; runI = opts.segI[i]; }
+    }
+    paint(runStart, b + 1, runI);
+  }
+
   // data-driven form: faint verticals at section boundaries (studio classic)
   if (opts.sectStarts) {
     g.strokeStyle = '#26262e'; g.lineWidth = 1;
@@ -189,6 +204,24 @@ export function drawClimate(canvas, material, playFrac = -1, opts = {}) {
     const x = X(pi);
     g.strokeStyle = CO.play; g.lineWidth = 1.4;
     g.beginPath(); g.moveTo(x, padT); g.lineTo(x, h - padB); g.stroke();
+
+    // the act of translation, made visible: a thread from the raw monthly
+    // value (small ring) up/down to the note that sounds right now (dot)
+    const ci = Math.max(0, Math.min(rows.length - 1, Math.round(pi)));
+    const pv = opts.played?.[ci];
+    if (Number.isFinite(pv)) {
+      const yData = Y(rows[ci].anomaly), yNote = Y(pv);
+      g.strokeStyle = 'rgba(242,242,244,0.55)'; g.lineWidth = 1;
+      g.beginPath(); g.moveTo(x, yData); g.lineTo(x, yNote); g.stroke();
+      if (rows[ci].record || rows[ci].hot) {              // extreme sounding now: halo
+        g.fillStyle = 'rgba(230,57,47,0.22)';
+        g.beginPath(); g.arc(x, yData, 8, 0, 7); g.fill();
+      }
+      g.strokeStyle = CO.play; g.lineWidth = 1.2;
+      g.beginPath(); g.arc(x, yData, 3, 0, 7); g.stroke();  // the datum (ring)
+      g.fillStyle = CO.play;
+      g.beginPath(); g.arc(x, yNote, 3.6, 0, 7); g.fill();  // the note (dot)
+    }
   }
 }
 

@@ -107,6 +107,10 @@ const STR = {
   viz_monthly: { de: 'monatswerte', en: 'monthly values' },
   viz_trend: { de: '10-jahres-trend', en: '10-year trend' },
   viz_played: { de: 'gespielter ton', en: 'played note' },
+  stage_link_hint: {
+    de: 'lesehilfe · so hängen daten und musik zusammen: graue linie = monatswerte · rote linie = 10-jahres-trend (bass) · helle striche = der ton, der wirklich klingt · weißer faden am zeiger = ring (messwert) wird zu punkt (ton) — der moment der übersetzung · rotes halo = ein extrem erklingt · zarte helligkeitsstufen im hintergrund = satz-intensität 1–5 aus der quantil-dramaturgie, ihre grenzen tragen kadenzen (linien).',
+    en: 'how to read it · how data and music connect: grey line = monthly values · red line = 10-year trend (bass) · pale dashes = the note that actually sounds · white thread at the playhead = ring (measurement) becomes dot (note) — the moment of translation · red halo = an extreme is sounding · faint brightness bands = section intensity 1–5 from the quantile dramaturgy, their boundaries carry cadences (lines).'
+  },
 
   // ---- experiments ----
   exp_intro: {
@@ -180,8 +184,8 @@ const STR = {
 
   // ---- studio ----
   studio_intro: {
-    de: 'Zwölf fertige Stil-Partituren über die volle Messreihe 1850–2020: ein Monat = eine Sechzehntel, ~170 Jahre in gut vier Minuten. Die Daten bestimmen Melodie, Bass und Akzente — höre, wie das Stück zum Ende hin steigt. Klick = spielen.',
-    en: 'Twelve finished style scores across the full record 1850–2020: one month = one sixteenth note, ~170 years in just over four minutes. The data drives melody, bass and accents — hear the piece climb towards the end. Click to play.'
+    de: 'Zwölf fertige Stil-Partituren über die volle Messreihe 1850–2020: ein Monat = eine Sechzehntel, ~170 Jahre in gut vier Minuten. Die Daten bestimmen Melodie, Bass und Akzente, die Quantil-Dramaturgie die Form: ruhig gerankte Segmente dünnen aus, intensive füllen sich, starke Abfälle werden Breakdowns (die Kick setzt aus). Höre, wie das Stück zum Ende hin steigt. Klick = spielen.',
+    en: 'Twelve finished style scores across the full record 1850–2020: one month = one sixteenth note, ~170 years in just over four minutes. The data drives melody, bass and accents; the quantile dramaturgy drives the form: low-ranked segments thin out, intense ones fill up, sharp drops become breakdowns (the kick rests). Hear the piece climb towards the end. Click to play.'
   },
   studio_now: { de: 'gerade geladen', en: 'now loaded' },
   refs: { de: 'im geiste von', en: 'in the spirit of' },
@@ -392,8 +396,8 @@ const STR = {
   modal_why_title: { de: 'warum trifft das den stil?', en: 'why does this hit the style?' },
   modal_common_title: { de: 'grundregeln (in allen stilen gleich)', en: 'ground rules (identical in every style)' },
   sty_common: {
-    de: 'Melodie = Monatswerte (wärmer = höher, 2 Oktaven) · Bass = 10-Jahres-Trend (steigt mit dem Klimazustand) · Fläche = Jahreszeiten · Akzente = Extreme, Rekorde, Sprünge · Dekadenwechsel = Kadenz-Anker · Klima-Varianz = Ghost-Notes & Verzierungen. Im Studio gilt: 1 Monat = eine Sechzehntel, 1 Beat = 4 Monate — 170 Jahre werden Form.',
-    en: 'Melody = monthly values (warmer = higher, 2 octaves) · bass = 10-year trend (rises with the climate state) · pad = seasons · accents = extremes, records, jumps · decade turns = cadence anchors · climate variability = ghost notes & ornaments. In the studio: 1 month = one sixteenth, 1 beat = 4 months — 170 years become form.'
+    de: 'Melodie = Monatswerte (wärmer = höher, 2 Oktaven) · Bass = 10-Jahres-Trend · Fläche = Jahreszeiten · Akzente = Extreme, Rekorde, Sprünge · Klima-Varianz = Ghost-Notes & Verzierungen. Form: Die Quantil-Dramaturgie rankt 8-Jahres-Segmente nach Klimazustands-Mittel (→ Intensität 1–5) und Varianz (→ cantabile/mosso/agitato) — jedes Segment hat eigene Regeln, Übergänge tragen Kadenzen, ★ ist die Klimax. Alles davon ist im Plot sichtbar (Lesehilfe unter der Legende) — jeder Klang hat eine zeigbare Daten-Ursache.',
+    en: 'Melody = monthly values (warmer = higher, 2 octaves) · bass = 10-year trend · pad = seasons · accents = extremes, records, jumps · climate variability = ghost notes & ornaments. Form: the quantile dramaturgy ranks 8-year segments by mean climate state (→ intensity 1–5) and by variability (→ cantabile/mosso/agitato) — each segment has its own rules, transitions carry cadences, ★ is the climax. All of it is visible in the plot (reading guide below the legend) — every sound has a data cause you can point at.'
   },
   sty_dub_map: {
     de: 'Auf der Offbeat-Sechzehntel jedes Beats schlägt ein Moll-Akkord-Stab an, gebaut aus der Anomalie des jeweiligen Monats — in warmen Dekaden mit Septime. Er läuft in ein langes, dunkles Dub-Delay (punktierte Achtel, hohe Rückkopplung). Darunter: runder Sub-Bass auf dem Trend, fast stumme Hi-Hats, Sidechain-Pumpen auf jeder Kick.',

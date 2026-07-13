@@ -420,6 +420,7 @@ export function scheduleEvent(session, ev, t0) {
   const ac = session.ac;
   const fn = VOICES[ev.voice];
   if (!fn) return;
+  if ((ev.vel ?? 0) <= 0.001) return;          // muted (e.g. breakdown kicks)
   const track = session.tracks[ev.track] || session.master;
   // per-event bus so fx sends tap only this event, not the whole track
   const bus = ac.createGain();

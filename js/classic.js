@@ -21,7 +21,7 @@
 import {
   SCALES, midiFreq, midiName, snapToScale, mapToMidi, scaleChord,
   mulberry32, derivePlayed, buildSegmentPlan
-} from './score.js?v=202607131453';
+} from './score.js?v=202607132325';
 
 export const CLASSICS = {
   bach: {
@@ -60,21 +60,40 @@ export const CLASSIC_ORDER = ['bach', 'mozart', 'beethoven', 'chopin', 'satie', 
 
 const clamp01 = x => Math.max(0, Math.min(1, x));
 
+// Length never stretches the idiom pulse. Instead, 'long'/'epic' refine the
+// data: every month is upsampled into f pulses whose in-between values are
+// interpolated passing tones (baroque diminution) — original months keep the
+// accents, the pace stays the composer's own.
+function stretchMaterial(rows, f) {
+  if (f <= 1) return { rows2: rows, vals2: rows.map(r => r.anomaly) };
+  const rows2 = [], vals2 = [];
+  for (let i = 0; i < rows.length; i++) {
+    const r = rows[i], nx = rows[Math.min(rows.length - 1, i + 1)];
+    for (let k = 0; k < f; k++) {
+      rows2.push(k === 0 ? r : { ...r, hot: false, record: false, cold: false, jump: false, runStart: false, isSub: true });
+      const a2 = k / f;
+      vals2.push(r.anomaly * (1 - a2) + nx.anomaly * a2);
+    }
+  }
+  return { rows2, vals2 };
+}
+
 // ---------------------------------------------------------------- builder --
 export function buildClassicScore(material, id, opts = {}) {
   const st = CLASSICS[id];
   const scale = SCALES[st.scale];
   const root = st.root;
-  const spm = st.spm * (opts.tempoMult || 1);
-  const rows = material.rows;
+  const spm = st.spm;                                   // idiom pace is sacred
+  const stretch = Math.max(1, Math.round(opts.stretch || 1));
   const stats = material.stats;
+  const { rows2: rows, vals2 } = stretchMaterial(material.rows, stretch);
   const rand = mulberry32(opts.seed ?? 1234);
   const n = rows.length;
   const ev = [];
   const lead = 0.4;
   const T = i => lead + i * spm;
 
-  const val = rows.map(r => r.anomaly);
+  const val = vals2;
   const vLo = stats.lo, vHi = stats.hi;
   const melLo = id === 'mozart' ? root + 19 : id === 'chopin' ? root + 15 : root + 12;
   const melHi = melLo + 24;
@@ -89,7 +108,7 @@ export function buildClassicScore(material, id, opts = {}) {
   const va = rows.map(r => r.variab ?? 0.5);
 
   // ---- segment plan: intensity & character per 8-year block --------------
-  const plan = buildSegmentPlan(rows, cs, va, 96);
+  const plan = buildSegmentPlan(rows, cs, va, 96 * stretch);
   const segI = i => plan.seg[i]?.I ?? 3;
   const segC = i => plan.seg[i]?.C ?? 2;
   const isClimax = i => !!plan.seg[i]?.climax;
@@ -111,7 +130,7 @@ export function buildClassicScore(material, id, opts = {}) {
   // in the first bar of the new segment
   const rest = new Array(n).fill(false);
   for (const b of plan.blocks) {
-    if (b.dI <= -2) for (let k = b.i0; k < Math.min(n, b.i0 + 6); k++) rest[k] = true;
+    if (b.dI <= -1) for (let k = b.i0; k < Math.min(n, b.i0 + 6); k++) rest[k] = true;
   }
 
   // ---- classical voices ---------------------------------------------------
@@ -134,7 +153,7 @@ export function buildClassicScore(material, id, opts = {}) {
     const lowBass = id === 'bach' ? bassCembalo : bassPiano;
     lowBass(T(i) - 4 * spm, root - 5, 0.2 * w, spm * 4);
     lowBass(T(i), root - 12, 0.24 * w, spm * 8);
-    if (Math.abs(dI) >= 2 || segI(i) >= 4) {
+    if (Math.abs(dI) >= 1 || segI(i) >= 4) {
       strings(T(i), scaleChord(root, scale, 0, root + 3, Math.abs(dI) >= 2 ? 4 : 3), 0.07 * w, spm * 16 * w);
     }
   };
@@ -146,7 +165,7 @@ export function buildClassicScore(material, id, opts = {}) {
     const vs = velScale[i] * (isStill(i) ? 0.85 : 1);
     const legato = C === 1 ? 1.5 : 1;                 // cantabile holds longer
     const midi = M(val[i]);
-    const yearStart = r.month === 1;
+    const yearStart = r.month === 1 && !r.isSub;
     const decade = yearStart && r.year % 10 === 0;
 
     switch (id) {
@@ -261,6 +280,13 @@ export function buildClassicScore(material, id, opts = {}) {
   });
 
   const sounding = derivePlayed(ev, rows, { lead, spm, melLo, melHi, vLo, vHi });
+  // reduce pulse-level series back to real months for the plot overlay
+  const nReal = material.rows.length;
+  const playedReal = new Array(nReal), segIReal = new Array(nReal);
+  for (let ri = 0; ri < nReal; ri++) {
+    playedReal[ri] = sounding.played[ri * stretch];
+    segIReal[ri] = plan.seg[ri * stretch]?.I ?? 3;
+  }
 
   return {
     events: ev,
@@ -270,8 +296,9 @@ export function buildClassicScore(material, id, opts = {}) {
       styleId: id, spm, lead, rows,
       bodyEnd: lead + n * spm,
       monthNotes: sounding.monthNotes,
-      played: sounding.played,
-      sectStarts: plan.starts,
+      played: playedReal,
+      segI: segIReal,
+      sectStarts: plan.starts.map(x => Math.floor(x / stretch)),
       segLabel: plan.segLabel,
       mapRule: { lo: vLo, hi: vHi, noteLo: midiName(melLo), noteHi: midiName(melHi), scale: st.scale, source: 'anomaly' }
     }

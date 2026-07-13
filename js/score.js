@@ -260,6 +260,16 @@ export function buildClimateScore(material, styleId, opts = {}) {
   const vaArr = rows.map(r => r.variab ?? 0.5);
   const plan = buildSegmentPlan(rows, csArr, vaArr, 48);
 
+  // full form integration: segment dynamics (crescendo into each level) and
+  // breakdowns — after a strong intensity drop the kick rests for 8 months
+  const velSeg = new Array(rows.length).fill(1);
+  const kickRest = new Array(rows.length).fill(false);
+  for (const b of plan.blocks) {
+    const from = 0.68 + (b.I - b.dI) * 0.065, to = 0.68 + b.I * 0.065 + (b.climax ? 0.05 : 0);
+    for (let i = b.i0; i < b.i1; i++) velSeg[i] = from + (to - from) * Math.min(1, (i - b.i0) / 16);
+    if (b.i0 > 0 && b.dI <= -1) for (let k = b.i0; k < Math.min(rows.length, b.i0 + 16); k++) kickRest[k] = true;
+  }
+
   rows.forEach((r, i) => {
     const n01 = clamp01((val[i] - vLo) / (vHi - vLo));         // warm = high
     const midi = mapToMidi(val[i], vLo, vHi, melLo, melHi, root, scale);
@@ -275,7 +285,7 @@ export function buildClimateScore(material, styleId, opts = {}) {
     // wider trend register than before: the bass audibly climbs with the state
     const trendMidi = mapToMidi(r.trend, stats.trendLo, stats.trendHi, root - 14, root + 4, root, scale);
     const fBass = midiFreq(trendMidi);
-    const chordSize = cs > 0.62 ? 4 : 3;   // warm decades get sevenths
+    const chordSize = (cs > 0.62 || (plan.seg[i]?.I ?? 3) >= 4) ? 4 : 3;   // warm decades / intense segments get sevenths
     const degree = Math.round(n01 * 5);
     const yearStart = r.month === 1;
 
@@ -504,14 +514,25 @@ export function buildClimateScore(material, styleId, opts = {}) {
 
   // segment transitions: a strong intensity jump announces itself
   if (beatStyle) for (const b of plan.blocks) {
-    if (b.i0 > 0 && b.dI >= 2) {
-      ev.push({ t: T(Math.max(0, b.i0 - 8), 0), dur: spm * 8, track: 'extremes', voice: 'riser', vel: 0.13 });
+    if (b.i0 > 0 && b.dI >= 1) {
+      ev.push({ t: T(Math.max(0, b.i0 - 8), 0), dur: spm * 8, track: 'extremes', voice: 'riser', vel: 0.09 + 0.05 * b.dI });
       ev.push({ t: T(b.i0, 0), dur: 0.3, track: 'extremes', voice: 'hat', vel: 0.2, open: true });
     }
   }
 
   // texture
   if (styleId === 'triphop') ev.push({ t: 0, dur: lead + rows.length * spm + 1, track: 'texture', voice: 'vinyl', vel: 0.05 });
+
+  // apply the segment plan to everything that sounds: crescendo/diminuendo
+  // per intensity level, kick breakdowns, sparse I1 segments lose the claps
+  for (const e of ev) {
+    const i = Math.floor((e.t - lead) / spm);
+    if (i < 0 || i >= rows.length) continue;
+    e.vel *= velSeg[i];
+    const I = plan.seg[i]?.I ?? 3;
+    if (kickRest[i] && e.voice === 'kick' && e.track === 'perc') e.vel = 0;
+    if (I === 1 && e.voice === 'clap') e.vel = 0;
+  }
 
   // per-month sounding note (group means, octaves, snapping included)
   const sounding = derivePlayed(ev, rows, { lead, spm, melLo, melHi, vLo, vHi });
@@ -527,6 +548,7 @@ export function buildClimateScore(material, styleId, opts = {}) {
       played: sounding.played,
       sectStarts: plan.starts,
       segLabel: plan.segLabel,
+      segI: rows.map((_, i) => plan.seg[i]?.I ?? 3),
       mapRule: { lo: vLo, hi: vHi, noteLo: midiName(melLo), noteHi: midiName(melHi), scale: st.scale, source }
     }
   };
@@ -534,7 +556,7 @@ export function buildClimateScore(material, styleId, opts = {}) {
 
 // ------------------------------------------------------------ paleo score --
 // tracks: [{dataset, series, voice, octave(2|4|6), gain}] · opts: {from,to,stepSec,root,scaleId}
-import { paleoOnGrid, quantile } from './data.js?v=202607131453';
+import { paleoOnGrid, quantile } from './data.js?v=202607132325';
 
 export function buildPaleoScore(tracks, opts = {}) {
   const from = opts.from ?? 0, to = opts.to ?? 800;
