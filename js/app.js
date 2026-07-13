@@ -1,11 +1,11 @@
 // app.js — UI wiring: modes, controls, playback sync, experiments, sharing.
 
-import { t, setLang, getLang, applyI18n } from './i18n.js?v=202607131001';
-import { loadCityIndex, loadCity, loadGlobal, loadPaleo, buildMaterial, loadCityIndexAll, loadCityLive } from './data.js?v=202607131001';
-import { play, renderWav } from './engine.js?v=202607131001';
-import { STYLES, STYLE_ORDER, buildClimateScore, buildPaleoScore } from './score.js?v=202607131001';
-import { drawClimate, drawPaleo } from './viz.js?v=202607131001';
-import { CLASSICS, CLASSIC_ORDER, buildClassicScore } from './classic.js?v=202607131001';
+import { t, setLang, getLang, applyI18n } from './i18n.js?v=202607131453';
+import { loadCityIndex, loadCity, loadGlobal, loadPaleo, buildMaterial, loadCityIndexAll, loadCityLive } from './data.js?v=202607131453';
+import { play, renderWav } from './engine.js?v=202607131453';
+import { STYLES, STYLE_ORDER, buildClimateScore, buildPaleoScore } from './score.js?v=202607131453';
+import { drawClimate, drawPaleo } from './viz.js?v=202607131453';
+import { CLASSICS, CLASSIC_ORDER, buildClassicScore } from './classic.js?v=202607131453';
 
 const $ = id => document.getElementById(id);
 
@@ -317,11 +317,12 @@ function updateLegend(pos) {
   const i = Math.floor((pos - m.lead) / m.spm);
   if (i >= 0 && i < m.rows.length) {
     const r = m.rows[i];
+    const seg = m.segLabel?.[i];
     $('legend-live').textContent = t('legend_line', {
       ym: `${r.year}-${String(r.month).padStart(2, '0')}`,
       val: (r.anomaly >= 0 ? '+' : '') + r.anomaly.toFixed(2),
       note: m.monthNotes[i]
-    });
+    }) + (seg ? ` · ${seg}` : '');
   }
 }
 

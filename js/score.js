@@ -66,6 +66,53 @@ export function scaleChord(root, scale, degree, midiLo, size = 3) {
   return notes.map(n => { while (n < midiLo) n += 12; while (n > midiLo + 24) n -= 12; return n; });
 }
 
+// ------------------------------------------------- segment ranking engine --
+// "Quantil-Dramaturgie": the piece is split into blocks; blocks are RANKED
+// by their mean climate state (Mittelwertsreihenfolge) and by their mean
+// variability (Variabilitätsreihenfolge). The rank quintile gives the
+// intensity level I (1..5: solo/pp … tutti/f), the rank tercile gives the
+// character C (1 cantabile · 2 mosso · 3 agitato). Each segment therefore
+// gets its own rule set; transitions carry a cadence whose weight is |ΔI|.
+// The block with the highest rank sum is the CLIMAX, the lowest the STILL point.
+export function buildSegmentPlan(rows, cs, va, blockLen = 96) {
+  const n = rows.length;
+  const blocks = [];
+  for (let i0 = 0; i0 < n; i0 += blockLen) {
+    const i1 = Math.min(n, i0 + blockLen);
+    let sm = 0, sv = 0, c = 0;
+    for (let i = i0; i < i1; i++) { sm += cs[i]; sv += va[i]; c++; }
+    blocks.push({ i0, i1, m: sm / c, v: sv / c });
+  }
+  const k = blocks.length;
+  const rank = key => {
+    const order = blocks.slice().sort((a, b) => a[key] - b[key]);
+    order.forEach((b, j) => { b['r' + key] = k > 1 ? j / (k - 1) : 0.5; });
+  };
+  rank('m'); rank('v');
+  blocks.forEach(b => {
+    b.I = 1 + Math.min(4, Math.floor(b.rm * 5));   // quintile of the mean ordering
+    b.C = 1 + Math.min(2, Math.floor(b.rv * 3));   // tercile of the variability ordering
+  });
+  let climax = blocks[0], still = blocks[0];
+  for (const b of blocks) {
+    if (b.rm + b.rv > climax.rm + climax.rv) climax = b;
+    if (b.rm + b.rv < still.rm + still.rv) still = b;
+  }
+  climax.climax = true; still.still = true;
+  blocks.forEach((b, j) => { b.dI = j === 0 ? 0 : b.I - blocks[j - 1].I; });
+
+  const CHAR = ['cantabile', 'mosso', 'agitato'];
+  const seg = new Array(n);
+  const segLabel = new Array(n);
+  const starts = [];
+  for (const b of blocks) {
+    const label = (b.climax ? '★ ' : b.still ? '· ' : '') + `${'I'.repeat(0)}${b.I}/5 · ${CHAR[b.C - 1]}`;
+    for (let i = b.i0; i < b.i1; i++) { seg[i] = b; segLabel[i] = label; }
+    if (b.i0 > 0) starts.push(b.i0);
+  }
+  return { blocks, seg, segLabel, starts };
+}
+
 export function mulberry32(seed) {
   let a = seed >>> 0;
   return () => {
@@ -206,6 +253,13 @@ export function buildClimateScore(material, styleId, opts = {}) {
 
   const monthNotes = [];
 
+  // segment ranking plan (Quantil-Dramaturgie) — light integration for the
+  // electronic styles: intensity gates the pad, character scales the ghosts,
+  // strong upward jumps get a riser into the new segment
+  const csArr = rows.map(r => clamp01(0.5 + ((r.trend - stats.trendLo) / Math.max(1e-6, stats.trendHi - stats.trendLo) - 0.5) * 1.6));
+  const vaArr = rows.map(r => r.variab ?? 0.5);
+  const plan = buildSegmentPlan(rows, csArr, vaArr, 48);
+
   rows.forEach((r, i) => {
     const n01 = clamp01((val[i] - vLo) / (vHi - vLo));         // warm = high
     const midi = mapToMidi(val[i], vLo, vHi, melLo, melHi, root, scale);
@@ -215,10 +269,9 @@ export function buildClimateScore(material, styleId, opts = {}) {
     const velMel = 0.5 + 0.4 * Math.abs(r.anomaly - stats.mean) / (2 * stats.sd + 0.001);
     // climate-state macro: the trend, variance-expanded (movements around the
     // middle are exaggerated) — drives register, loudness, harmony, density
-    const csRaw = (r.trend - stats.trendLo) / Math.max(1e-6, stats.trendHi - stats.trendLo);
-    const cs = clamp01(0.5 + (csRaw - 0.5) * 1.6);
+    const cs = csArr[i];
     // decadal variability of the anomaly — drives rhythmic complexity
-    const va = r.variab ?? 0.5;
+    const va = vaArr[i];
     // wider trend register than before: the bass audibly climbs with the state
     const trendMidi = mapToMidi(r.trend, stats.trendLo, stats.trendHi, root - 14, root + 4, root, scale);
     const fBass = midiFreq(trendMidi);
@@ -365,7 +418,7 @@ export function buildClimateScore(material, styleId, opts = {}) {
 
     // ---------- pad = seasonal cycle (or hemispheres for the global record) --
     const padEvery = beatStyle ? 4 * beatEvery : 2 * melEvery;
-    if (i % padEvery === 0) {
+    if (i % padEvery === 0 && (plan.seg[i]?.I ?? 3) > 1) {
       if (r.nh != null && r.sh != null) {
         const fN = midiFreq(mapToMidi(r.nh, -3, 17, root + 7, root + 19, root, scale));
         const fS = midiFreq(mapToMidi(r.sh, 11, 19, root + 7, root + 19, root, scale));
@@ -385,7 +438,8 @@ export function buildClimateScore(material, styleId, opts = {}) {
       const hat = (s, v, open) => ev.push({ t: TB(i, s), dur: 0.3, track: 'perc', voice: 'hat', vel: v * vj(), open });
       // complexity: decadal variability adds ghost notes and syncopation,
       // a hot climate state adds off-beat kicks
-      if (rand() < 0.08 + 0.35 * va) hat(rand() < 0.5 ? 1 : 3, 0.05 + 0.09 * va);
+      const charF = plan.seg[i]?.C === 3 ? 1.4 : plan.seg[i]?.C === 1 ? 0.6 : 1;
+      if (rand() < (0.08 + 0.35 * va) * charF) hat(rand() < 0.5 ? 1 : 3, 0.05 + 0.09 * va);
       if (styleId !== 'dub' && styleId !== 'triphop' && rand() < 0.1 * va + (cs > 0.7 ? 0.06 : 0)) kick(2, 0.16);
       switch (styleId) {
         case 'triphop':
@@ -448,6 +502,14 @@ export function buildClimateScore(material, styleId, opts = {}) {
     if (r.cold && !beatStyle) ev.push({ t: T(i, 0), dur: spm * 2, track: 'extremes', voice: 'sub', f: midiFreq(root - 12), vel: 0.12 });
   });
 
+  // segment transitions: a strong intensity jump announces itself
+  if (beatStyle) for (const b of plan.blocks) {
+    if (b.i0 > 0 && b.dI >= 2) {
+      ev.push({ t: T(Math.max(0, b.i0 - 8), 0), dur: spm * 8, track: 'extremes', voice: 'riser', vel: 0.13 });
+      ev.push({ t: T(b.i0, 0), dur: 0.3, track: 'extremes', voice: 'hat', vel: 0.2, open: true });
+    }
+  }
+
   // texture
   if (styleId === 'triphop') ev.push({ t: 0, dur: lead + rows.length * spm + 1, track: 'texture', voice: 'vinyl', vel: 0.05 });
 
@@ -463,6 +525,8 @@ export function buildClimateScore(material, styleId, opts = {}) {
       bodyEnd: lead + rows.length * spm,     // musical end (before the fx tail)
       monthNotes: sounding.monthNotes,
       played: sounding.played,
+      sectStarts: plan.starts,
+      segLabel: plan.segLabel,
       mapRule: { lo: vLo, hi: vHi, noteLo: midiName(melLo), noteHi: midiName(melHi), scale: st.scale, source }
     }
   };
@@ -470,7 +534,7 @@ export function buildClimateScore(material, styleId, opts = {}) {
 
 // ------------------------------------------------------------ paleo score --
 // tracks: [{dataset, series, voice, octave(2|4|6), gain}] · opts: {from,to,stepSec,root,scaleId}
-import { paleoOnGrid, quantile } from './data.js?v=202607131001';
+import { paleoOnGrid, quantile } from './data.js?v=202607131453';
 
 export function buildPaleoScore(tracks, opts = {}) {
   const from = opts.from ?? 0, to = opts.to ?? 800;

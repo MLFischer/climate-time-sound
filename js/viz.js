@@ -144,17 +144,22 @@ export function drawClimate(canvas, material, playFrac = -1, opts = {}) {
   for (let i = a; i <= b; i++) tseg.push([X(i), Y(rows[i].trend)]);
   line(g, tseg, CO.trend, 2.2);
 
-  // the note that actually sounds: step line (holds across grouped months)
+  // the note that actually sounds: soft horizontal dashes, one per held note —
+  // no vertical connectors, so the line reads as a quiet score overlay
   if (opts.played) {
-    g.strokeStyle = 'rgba(216,216,222,0.55)'; g.lineWidth = 1.3; g.beginPath();
-    let started = false;
+    g.strokeStyle = 'rgba(216,216,222,0.30)'; g.lineWidth = 1; g.beginPath();
+    let runStart = -1, runVal = NaN;
+    const flush = end => {
+      if (runStart < 0) return;
+      const y = Y(runVal);
+      g.moveTo(X(runStart), y); g.lineTo(X(end), y);
+    };
     for (let i = a; i <= b; i++) {
       const v = opts.played[i];
-      if (!Number.isFinite(v)) { started = false; continue; }
-      const y = Y(v), x0 = X(i), x1 = X(Math.min(b + 1, i + 1));
-      if (!started) { g.moveTo(x0, y); started = true; } else g.lineTo(x0, y);
-      g.lineTo(x1, y);
+      if (!Number.isFinite(v)) { flush(i); runStart = -1; continue; }
+      if (v !== runVal) { flush(i); runStart = i; runVal = v; }
     }
+    flush(Math.min(b + 1, rows.length - 1));
     g.stroke();
   }
 
