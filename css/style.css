@@ -13,6 +13,18 @@
   --sans: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
+/* light theme — warm paper, signal red kept for identity */
+:root[data-theme="light"] {
+  --bg: #f7f6f3;
+  --bg2: #ffffff;
+  --bg3: #edece7;
+  --line: #dcdad3;
+  --tx: #1e1e22;
+  --tx2: #5a5851;
+  --tx3: #8d8b83;
+  --red: #d42a20;
+}
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
@@ -53,6 +65,12 @@ body {
   font-family: var(--mono); font-size: 12px; padding: 5px 9px; border-radius: 6px; cursor: pointer;
 }
 .lang-btn.active { color: var(--tx); border-color: var(--line); background: var(--bg3); }
+
+.theme-btn {
+  background: var(--bg3); border: 1px solid var(--line); color: var(--tx2);
+  font-size: 14px; line-height: 1; padding: 6px 9px; border-radius: 6px; cursor: pointer;
+}
+.theme-btn:hover { color: var(--tx); border-color: var(--tx3); }
 
 /* -------------------------------------------------------------- stage --- */
 main { max-width: 1100px; margin: 0 auto; padding: 22px 26px 40px; }
@@ -101,6 +119,7 @@ main { max-width: 1100px; margin: 0 auto; padding: 22px 26px 40px; }
 }
 .legend-kicker { font-family: var(--mono); font-size: 11px; color: var(--red); letter-spacing: 0.08em; }
 .stage-hint { margin-top: 8px; font-size: 11.5px; line-height: 1.5; }
+body[data-mode="paleo"] .stage-hint { display: none; }
 #legend-live { color: var(--tx); }
 #legend-rule.rule { color: var(--tx3); }
 
@@ -231,6 +250,21 @@ button.exp-card:hover, .exp-card.active { border-color: var(--tx3); }
 .sc-meta { color: var(--tx3); font-size: 11.5px; font-family: var(--mono); margin-top: auto; }
 
 /* -------------------------------------------------------------- paleo --- */
+.paleo-top { margin: 4px 0 20px; }
+.paleo-top .len-row { margin-bottom: 6px; }
+#appr-hint { max-width: 760px; }
+.paleo-advanced {
+  margin: 22px 0 6px; border: 1px solid var(--line); border-radius: 10px;
+  padding: 0 16px; background: var(--bg2);
+}
+.paleo-advanced > summary {
+  cursor: pointer; padding: 12px 2px; font-family: var(--mono); font-size: 12px;
+  color: var(--tx2); letter-spacing: 0.04em; list-style-position: inside;
+}
+.paleo-advanced[open] > summary { color: var(--tx); border-bottom: 1px solid var(--line); margin-bottom: 12px; }
+.paleo-advanced > summary:hover { color: var(--tx); }
+body[data-appr="struktur"] #paleo-tracks-wrap { display: block; }
+#paleo-tracks-wrap { display: none; }
 .paleo-controls { display: flex; gap: 22px; flex-wrap: wrap; margin: 18px 0; }
 .paleo-controls label { display: block; font-size: 13px; color: var(--tx2); margin-bottom: 5px; }
 .paleo-controls select { width: auto; min-width: 160px; }

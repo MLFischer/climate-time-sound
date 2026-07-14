@@ -21,7 +21,7 @@
 import {
   SCALES, midiFreq, midiName, snapToScale, mapToMidi, scaleChord,
   mulberry32, derivePlayed, buildSegmentPlan
-} from './score.js?v=202607132325';
+} from './score.js?v=202607141032';
 
 export const CLASSICS = {
   bach: {

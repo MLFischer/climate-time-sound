@@ -1,11 +1,11 @@
 // app.js — UI wiring: modes, controls, playback sync, experiments, sharing.
 
-import { t, setLang, getLang, applyI18n } from './i18n.js?v=202607132325';
-import { loadCityIndex, loadCity, loadGlobal, loadPaleo, buildMaterial, loadCityIndexAll, loadCityLive } from './data.js?v=202607132325';
-import { play, renderWav } from './engine.js?v=202607132325';
-import { STYLES, STYLE_ORDER, buildClimateScore, buildPaleoScore } from './score.js?v=202607132325';
-import { drawClimate, drawPaleo } from './viz.js?v=202607132325';
-import { CLASSICS, CLASSIC_ORDER, buildClassicScore } from './classic.js?v=202607132325';
+import { t, setLang, getLang, applyI18n } from './i18n.js?v=202607141032';
+import { loadCityIndex, loadCity, loadGlobal, loadPaleo, buildMaterial, loadCityIndexAll, loadCityLive, materialFromSeries } from './data.js?v=202607141032';
+import { play, renderWav } from './engine.js?v=202607141032';
+import { STYLES, STYLE_ORDER, buildClimateScore, buildPaleoScore } from './score.js?v=202607141032';
+import { drawClimate, drawPaleo, setVizTheme } from './viz.js?v=202607141032';
+import { CLASSICS, CLASSIC_ORDER, buildClassicScore } from './classic.js?v=202607141032';
 
 const $ = id => document.getElementById(id);
 
@@ -19,7 +19,7 @@ const state = {
   studioLen: 'normal', seeking: false,
   paleo: {
     span: [0, 800], tempo: 'mid', constellation: 'iceages',
-    root: 'A', scaleId: 'minor', today: false,
+    root: 'A', scaleId: 'minor', today: false, approach: 'struktur',
     tracks: [
       { dataset: 'lr04', voice: 'lead', octave: 5, gain: 1, offset: 0 },
       { dataset: 'epica_co2', voice: 'bass', octave: 3, gain: 1, offset: 0 },
@@ -54,6 +54,18 @@ const PALEO_SHORT = {
 };
 
 const PALEO_ROOTS = { C: 36, D: 38, E: 40, F: 41, G: 43, A: 45, B: 47 };
+const PALEO_STYLE = 'downtempo';     // electro approach renders the lead proxy as this style
+const PALEO_COMPOSER = 'satie';      // classic approach renders it in this idiom
+const PALEO_N = (span, tempo, cl) => {
+  const div = cl ? { slow: 1.3, mid: 2.0, fast: 3.4 }[tempo] : 2.0;
+  return Math.max(160, Math.min(560, Math.round(span / div)));
+};
+function paleoLead() {
+  const t = state.paleo.tracks.find(x => x.dataset && x.dataset !== 'off');
+  if (t) return t.dataset;
+  const c = CONSTELLATIONS[state.paleo.constellation];
+  return c ? c.tracks[0][0] : 'lr04';
+}
 
 const CONSTELLATIONS = {
   iceages: { span: [0, 800], tracks: [['lr04', 'lead', 5], ['epica_co2', 'bass', 3], ['epica_temp', 'pad', 4]] },
@@ -89,15 +101,38 @@ function stopPlayback() {
 async function buildScore() {
   if (state.mode === 'paleo') {
     if (!state.paleoData) state.paleoData = await loadPaleo();
-    const tracks = state.paleo.tracks.map(tr => ({
-      ...tr, series: tr.dataset !== 'off' ? state.paleoData[tr.dataset] : null
-    }));
-    const stepSec = { slow: 0.2, mid: 0.13, fast: 0.085 }[state.paleo.tempo];
-    state.score = buildPaleoScore(tracks, {
-      from: state.paleo.span[0], to: state.paleo.span[1], stepSec,
-      root: PALEO_ROOTS[state.paleo.root] ?? 45, scaleId: state.paleo.scaleId,
-      todayMarker: state.paleo.today
-    });
+    const [from, to] = state.paleo.span;
+    const appr = state.paleo.approach || 'struktur';
+    if (appr === 'struktur') {
+      const tracks = state.paleo.tracks.map(tr => ({
+        ...tr, series: tr.dataset !== 'off' ? state.paleoData[tr.dataset] : null
+      }));
+      const stepSec = { slow: 0.2, mid: 0.13, fast: 0.085 }[state.paleo.tempo];
+      state.score = buildPaleoScore(tracks, {
+        from, to, stepSec,
+        root: PALEO_ROOTS[state.paleo.root] ?? 45, scaleId: state.paleo.scaleId,
+        todayMarker: state.paleo.today
+      });
+    } else {
+      // classic / elektro: render the lead proxy through the chamber/studio engine
+      const leadId = paleoLead();
+      const series = state.paleoData[leadId];
+      const n = PALEO_N(to - from, state.paleo.tempo, appr === 'classic');
+      const mat = materialFromSeries(series, from, to, n);
+      if (!mat) throw new Error('no paleo material for ' + leadId);
+      if (appr === 'classic') {
+        state.score = buildClassicScore(mat, PALEO_COMPOSER, { stretch: 1, seed: 20260706 });
+      } else {
+        const tempoMult = { slow: 0.42, mid: 0.26, fast: 0.17 }[state.paleo.tempo];
+        state.score = buildClimateScore(mat, PALEO_STYLE, { source: 'anomaly', tempoMult, seed: 20260706 });
+      }
+      // augment meta so the paleo plot (lane + kyr axis) and legend keep working
+      const m = state.score.meta;
+      m.stepSec = m.spm;
+      m.ages = mat.ages;
+      m.tracks = [{ dataset: leadId, voice: 'lead', norm: mat.norm,
+        raw: mat.rows.map(r => +r.anomaly.toPrecision(4)), pan: 0 }];
+    }
     state.material = null;
     return;
   }
@@ -379,12 +414,14 @@ async function exportWav() {
 function encodeShare() {
   const p = new URLSearchParams();
   p.set('m', state.mode); p.set('lang', getLang());
+  if (state.theme === 'light') p.set('th', 'light');
   if (state.mode === 'studio' || state.mode === 'classic') {
     if (state.mode === 'classic') p.set('c', state.classicId); else p.set('s', state.styleId);
     if (state.loop) p.set('loop', '1');
     if (state.studioLen !== 'normal') p.set('len', state.studioLen);
   }
   else if (state.mode === 'paleo') {
+    p.set('appr', state.paleo.approach);
     p.set('span', state.paleo.span.join('-'));
     p.set('pt', state.paleo.tempo);
     p.set('pr', state.paleo.root);
@@ -404,6 +441,8 @@ function decodeShare() {
   try {
     const p = new URLSearchParams(location.hash.slice(1));
     if (p.get('lang')) setLang(p.get('lang'));
+    if (p.get('th') === 'light') state.theme = 'light';
+    if (p.get('appr') && ['struktur', 'elektro', 'classic'].includes(p.get('appr'))) state.paleo.approach = p.get('appr');
     const m = p.get('m');
     if (m) state.mode = ['learn', 'studio', 'classic', 'paleo'].includes(m) ? m : 'studio';
     if (p.get('s') && STYLES[p.get('s')]) state.styleId = p.get('s');
@@ -889,6 +928,15 @@ function wire() {
   $('sel-pscale').addEventListener('change', e => { state.paleo.scaleId = e.target.value; });
   $('tgl-today').addEventListener('change', e => { state.paleo.today = e.target.checked; });
 
+  document.querySelectorAll('#seg-approach .seg-btn').forEach(b =>
+    b.addEventListener('click', async () => {
+      state.paleo.approach = b.dataset.appr;
+      syncApprSeg();
+      await startPlayback();
+    }));
+
+  $('theme-btn').addEventListener('click', () => applyTheme(state.theme === 'light' ? 'dark' : 'light'));
+
   $('modal-close').addEventListener('click', closeModal);
   $('modal').addEventListener('click', e => { if (e.target === $('modal')) closeModal(); });
   window.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
@@ -912,6 +960,7 @@ function refreshTexts() {
   $('btn-share').textContent = '🔗 ' + t('share_link');
   $('tgl-loop').checked = state.loop;
   syncLenSeg();
+  syncApprSeg();
   updateLoopStatus();
   updateRuleLine();
 }
@@ -921,8 +970,29 @@ function syncLenSeg() {
     b.classList.toggle('active', b.dataset.len === state.studioLen));
 }
 
+function syncApprSeg() {
+  document.body.dataset.appr = state.paleo.approach;
+  document.querySelectorAll('#seg-approach .seg-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.appr === state.paleo.approach));
+  const el = $('appr-hint');
+  if (el) el.textContent = t('appr_' + state.paleo.approach + '_hint');
+}
+
+// ------------------------------------------------------------ theme -------
+function applyTheme(name) {
+  state.theme = name === 'light' ? 'light' : 'dark';
+  document.documentElement.dataset.theme = state.theme;
+  setVizTheme(state.theme);
+  try { localStorage.setItem('cms_theme', state.theme); } catch (e) { /* ignore */ }
+  $('theme-btn').textContent = state.theme === 'light' ? '☀' : '◐';
+  redraw(state.handle ? playFracFromPos(state.handle.position()) : -1);
+}
+
 async function init() {
   decodeShare();
+  let theme = state.theme;
+  if (!theme) { try { theme = localStorage.getItem('cms_theme'); } catch (e) {} }
+  applyTheme(theme || 'dark');
   if (state.mode === 'studio') {
     const st = STYLES[state.styleId];
     state.dataset = st.city;

@@ -7,6 +7,7 @@ const STR = {
   // ---- app frame ----
   app_title: { de: 'climate · time · sound', en: 'climate · time · sound' },
   app_sub: { de: 'höre, wie aus Klimadaten Musik wird', en: 'hear climate data become music' },
+  theme_toggle: { de: 'hell/dunkel umschalten', en: 'toggle light/dark' },
   mode_learn: { de: 'lernen', en: 'learn' },
   mode_studio: { de: 'studio', en: 'studio' },
   mode_classic: { de: 'classic', en: 'classic' },
@@ -263,9 +264,26 @@ const STR = {
 
   // ---- paleo ----
   paleo_intro: {
-    de: 'Tiefenzeit: Hunderttausende Jahre Erdgeschichte als Mehrspur-Stück. Lege Orbitalzyklen unter Eis, CO₂ und Temperatur und höre, wie das Klima im Takt der Erdbahn atmet. Abspielrichtung: von der Vergangenheit bis heute.',
-    en: 'Deep time: hundreds of thousands of years of Earth history as a multitrack piece. Layer orbital cycles beneath ice, CO₂ and temperature and hear the climate breathe in the rhythm of Earth\'s orbit. Playback runs from the past to today.'
+    de: 'Tiefenzeit: Hunderttausende Jahre Erdgeschichte, hörbar gemacht. Wähl unten eine Klangart, dann eine Konstellation — und höre, wie das Klima im Takt der Erdbahn atmet. Abspielrichtung: von der Vergangenheit bis heute.',
+    en: 'Deep time: hundreds of thousands of years of Earth history, made audible. Pick a sound approach below, then a constellation — and hear the climate breathe in the rhythm of Earth\'s orbit. Playback runs from the past to today.'
   },
+  paleo_approach: { de: 'klangart', en: 'sound approach' },
+  appr_struktur: { de: 'struktur', en: 'layered' },
+  appr_elektro: { de: 'elektro', en: 'electronic' },
+  appr_classic: { de: 'klassik', en: 'classical' },
+  appr_struktur_hint: {
+    de: 'Struktur: alle gewählten Reihen gleichzeitig als übereinandergelegte Tonspuren — der klassische Mehrspur-Modus des Labs. Feinabstimmung (Spuren, Tonart, Versatz) unten unter „Feinabstimmung".',
+    en: 'Layered: all chosen series at once as stacked voices — the lab\'s classic multitrack mode. Fine-tuning (tracks, key, lead–lag) below under "advanced".'
+  },
+  appr_elektro_hint: {
+    de: 'Elektro: die Leitreihe der Konstellation wird zu einem elektronischen Stück — dieselben Regeln wie im Studio (wärmer = höher, Extreme = Akzente), plus Quantil-Dramaturgie (Segmente, Breakdowns). Ein Klick, ein Groove.',
+    en: 'Electronic: the constellation\'s lead series becomes an electronic piece — the same rules as the studio (warmer = higher, extremes = accents) plus the quantile dramaturgy (segments, breakdowns). One click, one groove.'
+  },
+  appr_classic_hint: {
+    de: 'Klassik: die Leitreihe als Kammermusik (Klavier & Streicher, im Geiste Saties) — ruhig, weit, mit datengetriebener Form. Ideal, um eine einzelne Tiefenzeit-Kurve zu „lesen".',
+    en: 'Classical: the lead series as chamber music (piano & strings, in the spirit of Satie) — calm, spacious, with data-driven form. Ideal for "reading" a single deep-time curve.'
+  },
+  paleo_advanced: { de: 'feinabstimmung — spuren, tonart, versatz', en: 'advanced — tracks, key, lead–lag' },
   paleo_constellations: { de: 'konstellationen — ein klick, ein thema', en: 'constellations — one click, one theme' },
   paleo_tracks: { de: 'spuren', en: 'tracks' },
   paleo_track: { de: 'spur', en: 'track' },

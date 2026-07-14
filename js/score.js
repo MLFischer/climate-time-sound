@@ -556,7 +556,7 @@ export function buildClimateScore(material, styleId, opts = {}) {
 
 // ------------------------------------------------------------ paleo score --
 // tracks: [{dataset, series, voice, octave(2|4|6), gain}] · opts: {from,to,stepSec,root,scaleId}
-import { paleoOnGrid, quantile } from './data.js?v=202607132325';
+import { paleoOnGrid, quantile } from './data.js?v=202607141032';
 
 export function buildPaleoScore(tracks, opts = {}) {
   const from = opts.from ?? 0, to = opts.to ?? 800;

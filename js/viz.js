@@ -1,11 +1,30 @@
 // viz.js — canvas rendering of the data score with a moving playhead.
 // Dark, reduced aesthetic: monochrome lines + signal red.
 
-const CO = {
-  bg: '#0c0c0e', grid: '#1d1d22', axis: '#4a4a52',
-  monthly: '#8f8f98', trend: '#e6392f', season: '#3b6ea8',
-  hot: '#e6392f', cold: '#4a7fbf', play: '#f2f2f4', text: '#6a6a72'
+// theme-aware palette: swapped by setVizTheme() so the canvas follows the
+// light/dark toggle just like the CSS does
+const PALETTES = {
+  dark: {
+    bg: '#0c0c0e', grid: '#1d1d22', axis: '#4a4a52',
+    monthly: '#8f8f98', trend: '#e6392f', season: '#3b6ea8',
+    hot: '#e6392f', cold: '#4a7fbf', play: '#f2f2f4', text: '#6a6a72',
+    mini: '#52525c', viewFill: 'rgba(242,242,244,0.06)', viewStroke: 'rgba(242,242,244,0.55)',
+    sect: '#26262e', played: 'rgba(216,216,222,0.30)', laneAlt: '#d8d8de',
+    thread: 'rgba(242,242,244,0.55)', halo: 'rgba(230,57,47,0.22)',
+    segTint: '232,232,236', laneA: '#b08b2e', laneB: '#7a5fb5'
+  },
+  light: {
+    bg: '#f7f6f3', grid: '#e5e3dd', axis: '#bebbb2',
+    monthly: '#9a988f', trend: '#d42a20', season: '#3667a8',
+    hot: '#d42a20', cold: '#3667a8', play: '#26262b', text: '#8d8b83',
+    mini: '#c2bfb6', viewFill: 'rgba(30,30,36,0.05)', viewStroke: 'rgba(30,30,36,0.42)',
+    sect: '#dedcd4', played: 'rgba(42,42,50,0.32)', laneAlt: '#44424a',
+    thread: 'rgba(30,30,36,0.5)', halo: 'rgba(212,42,32,0.20)',
+    segTint: '30,30,42', laneA: '#9c7a1e', laneB: '#6a52a0'
+  }
 };
+let CO = PALETTES.dark;
+export function setVizTheme(name) { CO = PALETTES[name] || PALETTES.dark; }
 
 export function setupCanvas(canvas) {
   const dpr = window.devicePixelRatio || 1;
@@ -72,13 +91,13 @@ export function drawClimate(canvas, material, playFrac = -1, opts = {}) {
     const step = Math.max(1, Math.floor(n / iw));
     const pts = [];
     for (let i = 0; i < n; i += step) pts.push([mX(i), mY(rows[i].anomaly)]);
-    line(g, pts, '#52525c', 1);
+    line(g, pts, CO.mini, 1);
     const tpts = [];
     for (let i = 0; i < n; i += step) tpts.push([mX(i), mY(rows[i].trend)]);
     line(g, tpts, CO.trend, 1.2);
     // viewport
-    g.strokeStyle = 'rgba(242,242,244,0.55)'; g.lineWidth = 1;
-    g.fillStyle = 'rgba(242,242,244,0.06)';
+    g.strokeStyle = CO.viewStroke; g.lineWidth = 1;
+    g.fillStyle = CO.viewFill;
     const vx0 = mX(i0), vx1 = mX(i1);
     g.fillRect(vx0, mTop - 2, Math.max(3, vx1 - vx0), mH + 4);
     g.strokeRect(vx0, mTop - 2, Math.max(3, vx1 - vx0), mH + 4);
@@ -133,7 +152,7 @@ export function drawClimate(canvas, material, playFrac = -1, opts = {}) {
     let runStart = a, runI = opts.segI[a];
     const paint = (from, to, I) => {
       if (!Number.isFinite(I) || I <= 1) return;
-      g.fillStyle = `rgba(232,232,236,${(0.012 * (I - 1)).toFixed(3)})`;
+      g.fillStyle = `rgba(${CO.segTint},${(0.014 * (I - 1)).toFixed(3)})`;
       g.fillRect(X(from), padT, X(Math.min(b + 1, to)) - X(from), ih);
     };
     for (let i = a; i <= b; i++) {
@@ -144,7 +163,7 @@ export function drawClimate(canvas, material, playFrac = -1, opts = {}) {
 
   // data-driven form: faint verticals at section boundaries (studio classic)
   if (opts.sectStarts) {
-    g.strokeStyle = '#26262e'; g.lineWidth = 1;
+    g.strokeStyle = CO.sect; g.lineWidth = 1;
     for (const si of opts.sectStarts) {
       if (si < a || si > b) continue;
       const x = X(si);
@@ -162,7 +181,7 @@ export function drawClimate(canvas, material, playFrac = -1, opts = {}) {
   // the note that actually sounds: soft horizontal dashes, one per held note —
   // no vertical connectors, so the line reads as a quiet score overlay
   if (opts.played) {
-    g.strokeStyle = 'rgba(216,216,222,0.30)'; g.lineWidth = 1; g.beginPath();
+    g.strokeStyle = CO.played; g.lineWidth = 1; g.beginPath();
     let runStart = -1, runVal = NaN;
     const flush = end => {
       if (runStart < 0) return;
@@ -194,7 +213,7 @@ export function drawClimate(canvas, material, playFrac = -1, opts = {}) {
     g.fillStyle = CO.trend; g.fillText(opts.labels.trend, lx, padT + 12);
     g.fillStyle = CO.monthly; g.fillText(opts.labels.monthly, lx, padT + 24);
     if (opts.played && opts.labels.played) {
-      g.fillStyle = '#d8d8de'; g.fillText(opts.labels.played, lx, padT + 36);
+      g.fillStyle = CO.laneAlt; g.fillText(opts.labels.played, lx, padT + 36);
     }
     g.textAlign = 'left';
   }
@@ -211,10 +230,10 @@ export function drawClimate(canvas, material, playFrac = -1, opts = {}) {
     const pv = opts.played?.[ci];
     if (Number.isFinite(pv)) {
       const yData = Y(rows[ci].anomaly), yNote = Y(pv);
-      g.strokeStyle = 'rgba(242,242,244,0.55)'; g.lineWidth = 1;
+      g.strokeStyle = CO.thread; g.lineWidth = 1;
       g.beginPath(); g.moveTo(x, yData); g.lineTo(x, yNote); g.stroke();
       if (rows[ci].record || rows[ci].hot) {              // extreme sounding now: halo
-        g.fillStyle = 'rgba(230,57,47,0.22)';
+        g.fillStyle = CO.halo;
         g.beginPath(); g.arc(x, yData, 8, 0, 7); g.fill();
       }
       g.strokeStyle = CO.play; g.lineWidth = 1.2;
@@ -238,7 +257,7 @@ export function drawPaleo(canvas, meta, labels, playFrac = -1) {
   }
   const laneH = (h - padT - padB) / tracks.length;
   const iw = w - padL - padR;
-  const colors = [CO.trend, '#d8d8de', CO.season, '#b08b2e', '#7a5fb5'];
+  const colors = [CO.trend, CO.laneAlt, CO.season, CO.laneA, CO.laneB];
 
   tracks.forEach((tr, ti) => {
     const top = padT + ti * laneH;

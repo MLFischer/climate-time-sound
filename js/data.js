@@ -176,6 +176,61 @@ export function buildMaterial(raw, yearFrom, yearTo) {
   };
 }
 
+// Turn a single paleo proxy series into a climate "material" so it can be fed
+// through the studio (electronic) or classic (chamber) engines. Rows run
+// oldest → present (row 0 = oldest); age fills the year field so the plot and
+// legend stay in kyr. Gaps are held (forward/backward filled) so the pitch
+// mapping never hits NaN.
+export function materialFromSeries(series, from, to, n) {
+  const step = (to - from) / n;
+  const ages = [], vals = [];
+  for (let i = 0; i <= n; i++) {
+    const age = to - i * step;                    // i=0 oldest
+    ages.push(age);
+    vals.push(paleoOnGrid(series, [age])[0]);
+  }
+  // hold across coverage gaps
+  let last = NaN;
+  for (let i = 0; i <= n; i++) { if (Number.isFinite(vals[i])) last = vals[i]; else vals[i] = last; }
+  for (let i = n; i >= 0; i--) { if (Number.isFinite(vals[i])) last = vals[i]; else vals[i] = last; }
+  if (!vals.some(Number.isFinite)) return null;
+
+  const lo = quantile(vals, 0.02), hi = quantile(vals, 0.98);
+  const nrm = vals.map(v => hi > lo ? Math.max(0, Math.min(1, (v - lo) / (hi - lo))) : 0.5);
+  const win = Math.max(5, Math.round(n / 14));
+  const trend = rollingMean(vals, win | 1);
+  const half = Math.max(6, Math.round(n / 12));
+  const vstd = vals.map((_, i) => {
+    let s = 0, s2 = 0, c = 0;
+    for (let j = Math.max(0, i - half); j <= Math.min(n, i + half); j++) { s += vals[j]; s2 += vals[j] * vals[j]; c++; }
+    const m = s / c; return Math.sqrt(Math.max(0, s2 / c - m * m));
+  });
+  const vsLo = quantile(vstd, 0.05), vsHi = quantile(vstd, 0.95);
+  const m0 = mean(vals);
+  const sd = Math.sqrt(mean(vals.map(a => (a - m0) * (a - m0)))) || 1;
+  const q95 = quantile(vals, 0.95), q05 = quantile(vals, 0.05);
+  const jumps = vals.map((a, k) => k ? Math.abs(a - vals[k - 1]) : 0);
+  const jq95 = quantile(jumps.slice(1), 0.95);
+
+  const rows = vals.map((a, k) => ({
+    year: Math.round(ages[k]), month: (k % 12) + 1,
+    anomaly: a, trend: trend[k], season: nrm[k],
+    nh: null, sh: null,
+    hot: a >= q95, record: a >= quantile(vals, 0.97), cold: a <= q05,
+    jump: k > 0 && jumps[k] >= jq95, runStart: false,
+    variab: vsHi > vsLo ? Math.max(0, Math.min(1, (vstd[k] - vsLo) / (vsHi - vsLo))) : 0.5
+  }));
+
+  return {
+    rows, ages, norm: nrm,
+    stats: {
+      mean: m0, sd, lo, hi,
+      trendLo: quantile(trend, 0.02), trendHi: quantile(trend, 0.98),
+      yearFrom: rows[0].year, yearTo: rows[rows.length - 1].year
+    }
+  };
+}
+
 // Interpolate a paleo series onto a regular age grid (kyr). NaN outside coverage.
 export function paleoOnGrid(series, grid) {
   const { age, value } = series;
