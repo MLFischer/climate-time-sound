@@ -409,7 +409,135 @@ function vVinyl(s, out, when, e) {          // continuous crackle texture
   nb.start(when); stopAll([nb], when + dur + 0.1);
 }
 
+// ------------------------------------------------- orchestral section -----
+// Voices for the Pleistocene Symphony: ensemble strings with vibrato and bow
+// noise, soft horns, dark low brass, breathy flute, tuned timpani.
+
+function vStrings(s, out, when, e) {
+  const ac = s.ac, dur = e.dur ?? 2.5;
+  const fs = e.fs || [e.f];
+  const flt = ac.createBiquadFilter(); flt.type = 'lowpass';
+  flt.frequency.value = 750 + (e.bright ?? 0.3) * 2400; flt.Q.value = 0.5;
+  const vib = ac.createOscillator(); vib.frequency.value = 4.8 + (Math.random() - 0.5);
+  const vibG = ac.createGain(); vibG.gain.setValueAtTime(0, when);
+  vibG.gain.linearRampToValueAtTime(5, when + Math.min(0.6, dur * 0.3));   // vibrato fades in
+  vib.connect(vibG);
+  const g = ac.createGain();
+  const atk = Math.min(0.9, dur * 0.28), rel = Math.min(1.4, dur * 0.35);
+  g.gain.setValueAtTime(0, when);
+  g.gain.linearRampToValueAtTime(e.vel, when + atk);
+  g.gain.setValueAtTime(e.vel, when + Math.max(atk, dur - rel));
+  g.gain.linearRampToValueAtTime(0, when + dur);
+  const oscs = [vib];
+  for (const f of fs) for (const det of [-6, 5]) {
+    const o = ac.createOscillator(); o.type = 'sawtooth';
+    o.frequency.value = f; o.detune.value = det;
+    vibG.connect(o.detune);
+    o.connect(flt); oscs.push(o);
+  }
+  // bow noise at the attack
+  const nb = ac.createBufferSource(); nb.buffer = noiseBuffer(ac); nb.loop = true;
+  const nf = ac.createBiquadFilter(); nf.type = 'bandpass'; nf.frequency.value = 2600; nf.Q.value = 0.8;
+  const ng = ac.createGain();
+  ng.gain.setValueAtTime(e.vel * 0.05, when);
+  ng.gain.exponentialRampToValueAtTime(0.0005, when + atk + 0.15);
+  nb.connect(nf); nf.connect(ng); ng.connect(out); oscs.push(nb);
+  flt.connect(g); g.connect(out);
+  oscs.forEach(o => o.start(when)); stopAll(oscs, when + dur + 0.1);
+}
+
+function vHorn(s, out, when, e) {
+  const ac = s.ac, dur = e.dur ?? 2;
+  const o1 = ac.createOscillator(); o1.type = 'sawtooth'; o1.frequency.value = e.f;
+  const o2 = ac.createOscillator(); o2.type = 'triangle'; o2.frequency.value = e.f;
+  const g2 = ac.createGain(); g2.gain.value = 0.6;
+  const flt = ac.createBiquadFilter(); flt.type = 'lowpass'; flt.Q.value = 0.7;
+  const base = 380 + (e.bright ?? 0.3) * 700;
+  flt.frequency.setValueAtTime(e.accent ? base * 2.2 : base, when);
+  if (e.accent) flt.frequency.exponentialRampToValueAtTime(base, when + Math.min(0.5, dur * 0.5));
+  const g = ac.createGain();
+  const atk = e.accent ? 0.025 : Math.min(0.4, dur * 0.22);
+  g.gain.setValueAtTime(0, when);
+  g.gain.linearRampToValueAtTime(e.vel * (e.accent ? 1.25 : 1), when + atk);
+  g.gain.setValueAtTime(e.vel, when + Math.max(atk, dur * 0.7));
+  g.gain.linearRampToValueAtTime(0, when + dur);
+  o1.connect(flt); o2.connect(g2); g2.connect(flt); flt.connect(g); g.connect(out);
+  o1.start(when); o2.start(when); stopAll([o1, o2], when + dur + 0.1);
+}
+
+function vBrassLow(s, out, when, e) {
+  const ac = s.ac, dur = e.dur ?? 2;
+  const osc = ac.createOscillator(); osc.type = 'sawtooth'; osc.frequency.value = e.f;
+  const form = ac.createBiquadFilter(); form.type = 'bandpass';
+  form.frequency.value = Math.min(1200, e.f * 3.2); form.Q.value = 1.1;
+  const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 900;
+  const ws = ac.createWaveShaper(); ws.curve = shaperCurve(1.35);
+  const g = ac.createGain();
+  const atk = Math.min(0.3, dur * 0.18);
+  g.gain.setValueAtTime(0, when);
+  g.gain.linearRampToValueAtTime(e.vel, when + atk);
+  g.gain.setValueAtTime(e.vel, when + Math.max(atk, dur * 0.72));
+  g.gain.linearRampToValueAtTime(0, when + dur);
+  osc.connect(form); form.connect(ws); ws.connect(lp); lp.connect(g); g.connect(out);
+  osc.start(when); stopAll([osc], when + dur + 0.1);
+}
+
+function vFlute(s, out, when, e) {
+  const ac = s.ac, dur = e.dur ?? 0.6;
+  const o1 = ac.createOscillator(); o1.frequency.value = e.f;
+  const o2 = ac.createOscillator(); o2.type = 'triangle'; o2.frequency.value = e.f * 2;
+  const g2 = ac.createGain(); g2.gain.value = 0.12;
+  const vib = ac.createOscillator(); vib.frequency.value = 5.2;
+  const vibG = ac.createGain(); vibG.gain.setValueAtTime(0, when);
+  vibG.gain.linearRampToValueAtTime(e.f * 0.006, when + Math.min(0.3, dur * 0.5));
+  vib.connect(vibG); vibG.connect(o1.frequency);
+  const g = ac.createGain();
+  const atk = Math.min(0.08, dur * 0.25);
+  g.gain.setValueAtTime(0, when);
+  g.gain.linearRampToValueAtTime(e.vel, when + atk);
+  g.gain.setValueAtTime(e.vel * 0.9, when + dur * 0.7);
+  g.gain.linearRampToValueAtTime(0, when + dur);
+  // breath
+  const nb = ac.createBufferSource(); nb.buffer = noiseBuffer(ac); nb.loop = true;
+  const nf = ac.createBiquadFilter(); nf.type = 'highpass'; nf.frequency.value = 2800;
+  const ng = ac.createGain(); ng.gain.value = e.vel * 0.045;
+  nb.connect(nf); nf.connect(ng); ng.connect(g);
+  o1.connect(g); o2.connect(g2); g2.connect(g); g.connect(out);
+  o1.start(when); o2.start(when); nb.start(when, Math.random());
+  stopAll([o1, o2, nb, vib], when + dur + 0.05);
+  vib.start(when);
+}
+
+function vTimp(s, out, when, e) {
+  const ac = s.ac, dur = e.dur ?? 1.4;
+  const f = e.f ?? 73;                                     // D2-ish kettle
+  const osc = ac.createOscillator();
+  osc.frequency.setValueAtTime(f * 1.5, when);
+  osc.frequency.exponentialRampToValueAtTime(f, when + 0.04);
+  const g = ac.createGain();
+  g.gain.setValueAtTime(e.vel, when);
+  g.gain.exponentialRampToValueAtTime(0.001, when + dur);
+  // membrane body: resonant noise at the pitch
+  const nb = ac.createBufferSource(); nb.buffer = noiseBuffer(ac); nb.loop = true;
+  const bp = ac.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = f * 1.6; bp.Q.value = 7;
+  const ng = ac.createGain();
+  ng.gain.setValueAtTime(e.vel * 0.7, when);
+  ng.gain.exponentialRampToValueAtTime(0.001, when + dur * 0.8);
+  // attack thump
+  const nb2 = ac.createBufferSource(); nb2.buffer = noiseBuffer(ac);
+  const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 300;
+  const ng2 = ac.createGain();
+  ng2.gain.setValueAtTime(e.vel * 0.8, when);
+  ng2.gain.exponentialRampToValueAtTime(0.001, when + 0.06);
+  osc.connect(g); nb.connect(bp); bp.connect(ng); ng.connect(g);
+  nb2.connect(lp); lp.connect(ng2); ng2.connect(g);
+  g.connect(out);
+  osc.start(when); nb.start(when, Math.random()); nb2.start(when);
+  stopAll([osc, nb, nb2], when + dur + 0.05);
+}
+
 const VOICES = {
+  strings: vStrings, horn: vHorn, brassLow: vBrassLow, flute: vFlute, timp: vTimp,
   kick: vKick, hat: vHat, clap: vClap, snare: vSnare, shaker: vShaker, ride: vRide,
   sub: vSub, acid: vAcid, stab: vStab, pad: vPad, pluck: vPluck, bell: vBell,
   piano: vPiano, drone: vDrone, riser: vRiser, impact: vImpact, vinyl: vVinyl

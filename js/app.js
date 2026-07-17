@@ -1,11 +1,12 @@
 // app.js — UI wiring: modes, controls, playback sync, experiments, sharing.
 
-import { t, setLang, getLang, applyI18n } from './i18n.js?v=202607141032';
-import { loadCityIndex, loadCity, loadGlobal, loadPaleo, buildMaterial, loadCityIndexAll, loadCityLive, materialFromSeries } from './data.js?v=202607141032';
-import { play, renderWav } from './engine.js?v=202607141032';
-import { STYLES, STYLE_ORDER, buildClimateScore, buildPaleoScore } from './score.js?v=202607141032';
-import { drawClimate, drawPaleo, setVizTheme } from './viz.js?v=202607141032';
-import { CLASSICS, CLASSIC_ORDER, buildClassicScore } from './classic.js?v=202607141032';
+import { t, setLang, getLang, applyI18n } from './i18n.js?v=202607170924';
+import { loadCityIndex, loadCity, loadGlobal, loadPaleo, buildMaterial, loadCityIndexAll, loadCityLive, materialFromSeries } from './data.js?v=202607170924';
+import { play, renderWav } from './engine.js?v=202607170924';
+import { STYLES, STYLE_ORDER, buildClimateScore, buildPaleoScore } from './score.js?v=202607170924';
+import { drawClimate, drawPaleo, setVizTheme } from './viz.js?v=202607170924';
+import { CLASSICS, CLASSIC_ORDER, buildClassicScore } from './classic.js?v=202607170924';
+import { buildSymphony, MOVEMENTS } from './symphony.js?v=202607170924';
 
 const $ = id => document.getElementById(id);
 
@@ -19,7 +20,7 @@ const state = {
   studioLen: 'normal', seeking: false,
   paleo: {
     span: [0, 800], tempo: 'mid', constellation: 'iceages',
-    root: 'A', scaleId: 'minor', today: false, approach: 'struktur',
+    root: 'A', scaleId: 'minor', today: false, approach: 'sinfonie',
     tracks: [
       { dataset: 'lr04', voice: 'lead', octave: 5, gain: 1, offset: 0 },
       { dataset: 'epica_co2', voice: 'bass', octave: 3, gain: 1, offset: 0 },
@@ -102,7 +103,14 @@ async function buildScore() {
   if (state.mode === 'paleo') {
     if (!state.paleoData) state.paleoData = await loadPaleo();
     const [from, to] = state.paleo.span;
-    const appr = state.paleo.approach || 'struktur';
+    const appr = state.paleo.approach || 'sinfonie';
+    if (appr === 'sinfonie') {
+      const tempoMult = { slow: 1.35, mid: 1, fast: 0.78 }[state.paleo.tempo] ?? 1;
+      state.score = buildSymphony(state.paleoData, { tempoMult, seed: 20260714 });
+      state.material = null;
+      renderSymphonyProgram();
+      return;
+    }
     if (appr === 'struktur') {
       const tracks = state.paleo.tracks.map(tr => ({
         ...tr, series: tr.dataset !== 'off' ? state.paleoData[tr.dataset] : null
@@ -345,6 +353,10 @@ function updateLegend(pos) {
         const unit = state.paleoData?.[tr.dataset]?.unit || '';
         return `${PALEO_SHORT[tr.dataset] ?? tr.dataset} ${v}${unit ? ' ' + unit : ''}`;
       }).filter(Boolean);
+      if (m.symphony) {
+        const num = { sym1: 'I', sym2: 'II', sym3: 'III', sym4: 'IV' }[m.moveKeyPerStep?.[i]] || '';
+        parts.unshift(`${num} · ${m.gramOfStep?.[i] ?? ''}`);
+      }
       $('legend-live').textContent = [`${Math.round(m.ages[i])} kyr BP`, ...parts].join(' · ');
     }
     return;
@@ -442,7 +454,7 @@ function decodeShare() {
     const p = new URLSearchParams(location.hash.slice(1));
     if (p.get('lang')) setLang(p.get('lang'));
     if (p.get('th') === 'light') state.theme = 'light';
-    if (p.get('appr') && ['struktur', 'elektro', 'classic'].includes(p.get('appr'))) state.paleo.approach = p.get('appr');
+    if (p.get('appr') && ['sinfonie', 'struktur', 'elektro', 'classic'].includes(p.get('appr'))) state.paleo.approach = p.get('appr');
     const m = p.get('m');
     if (m) state.mode = ['learn', 'studio', 'classic', 'paleo'].includes(m) ? m : 'studio';
     if (p.get('s') && STYLES[p.get('s')]) state.styleId = p.get('s');
@@ -727,6 +739,52 @@ function syncLearnControls() {
   }
 }
 
+// the symphony programme: four movements + coda, each row seeks on click;
+// after a build the detected form values (MPT, events) are shown
+function renderSymphonyProgram() {
+  const wrap = $('symph-program');
+  if (!wrap) return;
+  const meta = state.score?.meta?.symphony ? state.score.meta : null;
+  wrap.innerHTML = '';
+  MOVEMENTS.forEach((mv, k) => {
+    const row = document.createElement('button');
+    row.className = 'symph-row';
+    const ageFrom = meta ? Math.round(meta.ages[meta.moveStarts[k]]) : ['2580', '~1250', '~700', '130'][k];
+    const ageTo = meta && k < 3 ? Math.round(meta.ages[meta.moveStarts[k + 1]]) : (k < 3 ? ['~1250', '~700', '130'][k] : 0);
+    row.innerHTML = `<span class="symph-num">${mv.numeral}</span>
+      <span class="symph-body"><span class="symph-t">${t(mv.key + '_t')}</span>
+      <span class="symph-d">${t(mv.key + '_d')}</span></span>
+      <span class="symph-age mono">${ageFrom}–${ageTo} ka</span>`;
+    row.addEventListener('click', async () => {
+      const target = state.score?.meta?.symphony ? state.score.meta.moveTimes[k] : 0;
+      if (state.handle && state.score?.meta?.symphony) await seekTo(target / state.score.duration);
+      else await startPlayback(target);
+    });
+    wrap.appendChild(row);
+  });
+  const coda = document.createElement('button');
+  coda.className = 'symph-row';
+  coda.innerHTML = `<span class="symph-num">∞</span>
+    <span class="symph-body"><span class="symph-t">${t('symCoda_t')}</span>
+    <span class="symph-d">${t('symCoda_d')}</span></span>
+    <span class="symph-age mono">1850–</span>`;
+  coda.addEventListener('click', async () => {
+    const target = state.score?.meta?.symphony ? state.score.meta.bodyEnd + 0.4 : 0;
+    if (state.handle && state.score?.meta?.symphony) await seekTo(target / state.score.duration);
+    else await startPlayback(target);
+  });
+  wrap.appendChild(coda);
+  const det = $('symph-detected');
+  if (det) {
+    det.textContent = meta
+      ? t('symph_detected', {
+          mpt: `${meta.detected.mptStart}–${meta.detected.mptEnd} ka`,
+          term: meta.detected.terminations, doev: meta.detected.doEvents
+        })
+      : '';
+  }
+}
+
 function buildPaleoUI() {
   // constellation cards
   const wrap = $('constellations');
@@ -953,6 +1011,7 @@ function refreshTexts() {
   buildClassicCards();
   buildExperiments();
   buildPaleoUI();
+  renderSymphonyProgram();
   syncLearnControls();
   $('legend-live').textContent = t('legend_idle');
   $('btn-play').textContent = (state.handle ? '■ ' + t('stop') : '▶ ' + t('play'));

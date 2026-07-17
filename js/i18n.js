@@ -268,6 +268,49 @@ const STR = {
     en: 'Deep time: hundreds of thousands of years of Earth history, made audible. Pick a sound approach below, then a constellation — and hear the climate breathe in the rhythm of Earth\'s orbit. Playback runs from the past to today.'
   },
   paleo_approach: { de: 'klangart', en: 'sound approach' },
+  appr_sinfonie: { de: 'sinfonie', en: 'symphony' },
+  appr_sinfonie_hint: {
+    de: 'Die Pleistozän-Sinfonie: ein Orchesterwerk, dessen Kompositionsregeln vollständig aus den Klimadaten abgeleitet werden — Form, Harmonik, Kontrapunkt, Orchestrierung. Keine Vertonung, eine datengesteuerte Komposition.',
+    en: 'The Pleistocene Symphony: an orchestral work whose composition rules are derived entirely from the climate data — form, harmony, counterpoint, orchestration. Not a sonification: a data-governed composition.'
+  },
+  symph_head: { de: 'die pleistozän-sinfonie · programm', en: 'the pleistocene symphony · programme' },
+  symph_concept: {
+    de: 'Die Daten schreiben nicht die Noten — sie schreiben die Regeln. Eine Spektralanalyse des Eisvolumens (23/41/100/405-kyr-Bänder) findet die Satzgrenzen selbst: Die Mittelpleistozäne Wende ist gemessen, nicht gesetzt. Das Eis wählt den Modus (hell↔dunkel), CO₂ die Akkordfarbe (offene Quinten↔Terzwärme), Staub das Dissonanzbudget, die Insolation die Modulationen. Rollende Korrelationen wählen den Kontrapunkt: gekoppelt = Parallelbewegung, entkoppelt = Imitation, gegenläufig = Gegenbewegung — man hört das Klimanetzwerk. Wo Archive fehlen, wird die Musik solo, hohl und hallig: Unsicherheit ist Instrumentation. Milanković spielt nicht mit, er dirigiert: Präzession das Rubato, Obliquität die Dynamik, Exzentrizität die Phrasenlängen. Nur eine Stimme bleibt wörtlich — der Cantus firmus des Eises in den Celli, der zeigbare Anker des ganzen Werks. Klicke einen Satz, um hineinzuspringen.',
+    en: 'The data do not write the notes — they write the rules. A spectral analysis of ice volume (23/41/100/405-kyr bands) finds the movement boundaries itself: the Mid-Pleistocene Transition is measured, not decreed. Ice chooses the mode (bright↔dark), CO₂ the chord colour (open fifths↔warm thirds), dust the dissonance budget, insolation the modulations. Rolling correlations choose the counterpoint: coupled = parallel motion, decoupled = imitation, opposed = contrary motion — you hear the climate network. Where archives are missing the music turns solo, hollow and wet: uncertainty is orchestration. Milanković does not play, he conducts: precession the rubato, obliquity the dynamics, eccentricity the phrase lengths. Only one voice stays literal — the cantus firmus of the ice in the celli, the pointable anchor of the whole work. Click a movement to jump in.'
+  },
+  symph_grammar: {
+    de: 'Ereignisse schlagen als Geschichte ein: Terminationen → Pauken-Tutti · extreme Grönland-Minima → Generalpause · Dansgaard-Oeschger → ausnotiertes Accelerando · Toba (~74 ka) → Cluster-Schlag · Afrikanische Feuchtperiode (14,8–5,5 ka) → die Holzbläser blühen. Das Finale ist die einzige Dur-Passage: das Holozän, der stabile warme Akkord, in dem unsere Zivilisation lebt. Die Coda lässt das moderne CO₂ den Tonraum von allem Gehörten verlassen.',
+    en: 'Events strike as history: terminations → timpani tutti · extreme Greenland minima → general pause · Dansgaard-Oeschger → written-out accelerando · Toba (~74 ka) → cluster shock · the African Humid Period (14.8–5.5 ka) → the woodwinds bloom. The finale is the only major-key passage: the Holocene, the stable warm chord our civilisation lives inside. The coda lets modern CO₂ leave the pitch space of everything heard.'
+  },
+  symph_detected: {
+    de: 'aus den daten detektiert: mittelpleistozäne wende {mpt} · {term} terminationen · {doev} D-O-ereignisse',
+    en: 'detected from the data: mid-pleistocene transition {mpt} · {term} terminations · {doev} D-O events'
+  },
+  sym1_t: { de: 'die 41.000-jahr-welt', en: 'the 41,000-year world' },
+  sym1_d: {
+    de: 'Frühe, obliquitätsgetaktete Eiszyklen — das Hornmotiv führt, klare Kammerbesetzung, dorische Helle.',
+    en: 'Early obliquity-paced ice cycles — the horn cell leads, clear chamber scoring, dorian brightness.'
+  },
+  sym2_t: { de: 'die wende', en: 'the transition' },
+  sym2_d: {
+    de: 'Die gemessene Mittelpleistozäne Transition als Durchführung: zwei Periodizitäten ringen, das Motiv verkleinert sich, die Harmonik wird instabil.',
+    en: 'The measured Mid-Pleistocene Transition as development: two periodicities wrestle, the motif diminishes, the harmony destabilises.'
+  },
+  sym3_t: { de: 'die 100.000-jahr-welt', en: 'the 100,000-year world' },
+  sym3_d: {
+    de: 'Die großen Sägezähne: langer Eisaufbau als wachsendes Gewicht der tiefen Streicher — jede Termination bricht als Pauken-Tutti durch. Das Motiv erklingt vergrößert.',
+    en: 'The great sawteeth: long glacial build-up as growing weight in the low strings — every termination breaks through as a timpani tutti. The motif sounds augmented.'
+  },
+  sym4_t: { de: 'letzte eiszeit & holozän-finale', en: 'last glacial & holocene finale' },
+  sym4_d: {
+    de: 'D-O-Flackern als Accelerandi, Toba als Schlag, dann die letzte Termination — und das Holozän als einziger Dur-Choral des Werks, mit blühenden Holzbläsern der Feuchtperiode.',
+    en: 'D-O flickering as accelerandi, Toba as a shock, then the final termination — and the Holocene as the work\'s only major-key chorale, with the humid period\'s blooming woodwinds.'
+  },
+  symCoda_t: { de: 'coda · anthropozän', en: 'coda · anthropocene' },
+  symCoda_d: {
+    de: 'Das moderne CO₂ steigt über jedes Register, das die Eiszeitwelt je erreicht hat — dann Stille, und eine tiefe offene Frage.',
+    en: 'Modern CO₂ climbs past every register the ice-age world ever reached — then silence, and one low open question.'
+  },
   appr_struktur: { de: 'struktur', en: 'layered' },
   appr_elektro: { de: 'elektro', en: 'electronic' },
   appr_classic: { de: 'klassik', en: 'classical' },

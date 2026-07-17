@@ -14,7 +14,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="assets/icon-192.png">
-<link rel="stylesheet" href="css/style.css?v=202607141032">
+<link rel="stylesheet" href="css/style.css?v=202607170924">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' fill='%230c0c0e'/><path d='M2 11 L5 8 L8 10 L11 4 L14 6' stroke='%23e6392f' fill='none' stroke-width='1.6'/></svg>">
 </head>
 <body data-mode="studio">
@@ -176,6 +176,7 @@
       <div class="len-row">
         <span class="len-label" data-i18n="paleo_approach"></span>
         <div class="seg" id="seg-approach">
+          <button type="button" class="seg-btn" data-appr="sinfonie" data-i18n="appr_sinfonie"></button>
           <button type="button" class="seg-btn" data-appr="struktur" data-i18n="appr_struktur"></button>
           <button type="button" class="seg-btn" data-appr="elektro" data-i18n="appr_elektro"></button>
           <button type="button" class="seg-btn" data-appr="classic" data-i18n="appr_classic"></button>
@@ -184,11 +185,21 @@
       <p class="hint" id="appr-hint"></p>
     </div>
 
-    <h3 class="sec-h" data-i18n="paleo_constellations"></h3>
-    <div id="constellations" class="exp-grid"></div>
+    <div id="symph-block" class="symph-only">
+      <h3 class="sec-h" data-i18n="symph_head"></h3>
+      <p class="hint wide" data-i18n="symph_concept"></p>
+      <div id="symph-program"></div>
+      <p id="symph-detected" class="hint mono"></p>
+      <p class="hint wide" data-i18n="symph_grammar"></p>
+    </div>
+
+    <div class="paleo-lab-only">
+      <h3 class="sec-h" data-i18n="paleo_constellations"></h3>
+      <div id="constellations" class="exp-grid"></div>
+    </div>
 
     <div class="paleo-controls">
-      <div>
+      <div class="paleo-lab-only">
         <label data-i18n="paleo_span"></label>
         <select id="sel-span">
           <option value="0-800">0 – 800 kyr</option>
@@ -211,14 +222,14 @@
         </select>
       </div>
     </div>
-    <p id="paleo-periods" class="hint mono"></p>
-    <label class="tgl"><input type="checkbox" id="tgl-today"><span data-i18n="paleo_today"></span></label>
-    <p class="hint" data-i18n="paleo_today_help"></p>
+    <p id="paleo-periods" class="hint mono paleo-lab-only"></p>
+    <div class="paleo-lab-only"><label class="tgl"><input type="checkbox" id="tgl-today"><span data-i18n="paleo_today"></span></label>
+    <p class="hint" data-i18n="paleo_today_help"></p></div>
 
-    <h3 class="sec-h" data-i18n="paleo_experiments"></h3>
-    <div id="paleo-exps" class="exp-grid"></div>
+    <div class="paleo-lab-only"><h3 class="sec-h" data-i18n="paleo_experiments"></h3>
+    <div id="paleo-exps" class="exp-grid"></div></div>
 
-    <details class="paleo-advanced">
+    <details class="paleo-advanced paleo-lab-only">
       <summary data-i18n="paleo_advanced"></summary>
       <div class="paleo-controls">
         <div>
@@ -269,6 +280,6 @@
   </div>
 </div>
 
-<script type="module" src="js/app.js?v=202607141032"></script>
+<script type="module" src="js/app.js?v=202607170924"></script>
 </body>
 </html>

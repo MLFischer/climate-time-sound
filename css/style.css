@@ -250,6 +250,27 @@ button.exp-card:hover, .exp-card.active { border-color: var(--tx3); }
 .sc-meta { color: var(--tx3); font-size: 11.5px; font-family: var(--mono); margin-top: auto; }
 
 /* -------------------------------------------------------------- paleo --- */
+/* the symphony is the paleo main act; the lab steps back behind it */
+body[data-appr="sinfonie"] .paleo-lab-only { display: none; }
+body:not([data-appr="sinfonie"]) .symph-only { display: none; }
+
+#symph-program { display: flex; flex-direction: column; gap: 8px; margin: 12px 0 10px; }
+.symph-row {
+  display: flex; align-items: baseline; gap: 14px; text-align: left;
+  background: var(--bg2); border: 1px solid var(--line); border-radius: 10px;
+  padding: 12px 16px; cursor: pointer; color: var(--tx); font: inherit;
+}
+.symph-row:hover { border-color: var(--red); }
+.symph-num {
+  flex: none; width: 34px; font-family: var(--mono); font-size: 17px;
+  color: var(--red); letter-spacing: 0.04em;
+}
+.symph-body { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+.symph-t { font-family: var(--mono); font-size: 13.5px; }
+.symph-d { color: var(--tx3); font-size: 12.5px; line-height: 1.5; }
+.symph-age { flex: none; color: var(--tx3); font-size: 11px; }
+#symph-detected { margin: 4px 0 14px; color: var(--red); }
+
 .paleo-top { margin: 4px 0 20px; }
 .paleo-top .len-row { margin-bottom: 6px; }
 #appr-hint { max-width: 760px; }

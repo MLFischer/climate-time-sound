@@ -272,6 +272,19 @@ export function drawPaleo(canvas, meta, labels, playFrac = -1) {
     g.fillText(labels[ti] || tr.dataset, padL + 4, top + 12);
   });
 
+  // movement boundaries of the symphony: verticals + numerals
+  if (meta.moveStarts && meta.moveNumerals) {
+    meta.moveStarts.forEach((si, k) => {
+      const x = padL + (si / (meta.ages.length - 1)) * iw;
+      if (k > 0) {
+        g.strokeStyle = CO.sect; g.lineWidth = 1.4;
+        g.beginPath(); g.moveTo(x, padT); g.lineTo(x, h - padB); g.stroke();
+      }
+      g.fillStyle = CO.play; g.font = '12px ui-monospace, monospace';
+      g.fillText(meta.moveNumerals[k], x + 5, padT + 13);
+    });
+  }
+
   // age axis: oldest (left) -> present (right)
   const ages = meta.ages;
   g.fillStyle = CO.text; g.font = '10px ui-monospace, monospace';
